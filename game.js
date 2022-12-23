@@ -1,7 +1,14 @@
 var gl;
 var points;
 
-function main() {
+const QUIT = 0;
+const PLAY = 1;
+const PAUSE = 2;
+
+window.onload = function init() {
+
+    gameState = PLAY;
+
     var canvas = document.getElementById("gl-canvas");
 
     gl = WebGLUtils.setupWebGL(canvas); //what webgl-utils is needed for
@@ -30,32 +37,66 @@ function main() {
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
-
     // Load the data into the GPU
+    bufferDataToAttrib(program, "vPosition", vertices, 2, gl.FLOAT);
+    bufferDataToAttrib(program, "vColor", vColor, 3, gl.FLOAT);
 
-    //--position data
-    var vPosBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vPosBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    window.addEventListener('keydown', function(e) {
+        if (keyMap.get(e.key) == DOWN){ 
+            return;
+        }
+        keyMap.set(e.key, JUST_PRESSED);
+    });
 
-    // Associate our shader variables with our data buffer
-    var vPosition = gl.getAttribLocation(program, "vPosition");
-    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
+    window.addEventListener('keyup', function(e) {
+        keyMap.set(e.key, JUST_RELEASED);
+    });
 
-
-    //--color data
-    var vColBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vColBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vColor, gl.STATIC_DRAW);
-
-    //color attrib location
-    var vColor = gl.getAttribLocation(program, "vColor");
-    gl.vertexAttribPointer(vColor, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vColor);
-
-    render();
+    gameLoop();
 };
+
+function gameLoop(){
+    processInput();
+    render();
+
+    requestAnimFrame(gameLoop);
+}
+
+keyMap = new Map(); //tracks keys
+//values for bitwise operations
+//1st & 2nd bit denotes whether down or not, 2nd and 3rd bits denotes whether just pressed or just released
+const NOT_DOWN = 0b1000;
+const JUST_RELEASED = 0b1100;
+const DOWN = 0b0010;
+const JUST_PRESSED = 0b0011;
+
+function getKey(key){ if (keyMap.get(key) == undefined){ return NOT_DOWN; } else {return keyMap.get(key); }} //deals with keys that have never been pressed
+function keyTest(key, testAgainst){ return (getKey(key) & testAgainst) == testAgainst; }
+function processInput(){
+    //do stuff with inputs
+    if (keyTest("Enter", JUST_PRESSED)){
+        console.log("Enter just pressed");
+    }
+    if (keyTest("Enter", JUST_RELEASED)){
+        console.log("Enter just released");
+    }
+    if (keyTest("Enter", NOT_DOWN)){
+        console.log("Enter not down");
+    }
+    if (keyTest("Enter", DOWN)){
+        console.log("Enter down");
+    }
+
+    //update keymap
+    for (key of keyMap.keys()) {
+        if (keyMap.get(key) == JUST_PRESSED){
+            keyMap.set(key, DOWN);
+        }else if(keyMap.get(key) == JUST_RELEASED){
+            keyMap.set(key, NOT_DOWN);
+        }
+    }
+}
+
 
 
 function render() {
