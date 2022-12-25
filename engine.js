@@ -9,3 +9,7 @@ function bufferDataToAttrib(program, attribName, data, dataLength, dataType){
     gl.vertexAttribPointer(location, dataLength, dataType, false, 0, 0);
     gl.enableVertexAttribArray(location);
 }
+
+function bufferQuad(program, quad, locString){
+    bufferDataToAttrib(program, locString, quad._vertexPosData, 2, gl.FLOAT);
+}

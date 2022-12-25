@@ -16,38 +16,32 @@ window.onload = function init() {
         alert("WebGL isn't available");
     }
 
-    var vertices = new Float32Array(
-	[-0.5, -0.5,
-	-0.5, 0.5,
-	0.5, 0.5,
-	]);
-
     var vColor = new Float32Array(
     [1.0, 0.0, 1.0,
     0.0, 1.0, 1.0,
     1.0,1.0,0
     ]);
 
-    //  Configure WebGL
-
+    //configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.3, 0.3, 0.5, 1.0);
-    //  Load shaders and initialize attribute buffers
 
+    //  Load shaders and initialize attribute buffers
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
+    q1 = new Quad();
+    q1.setRect(-0.5, -0.5, 1, 1);
     // Load the data into the GPU
-    bufferDataToAttrib(program, "vPosition", vertices, 2, gl.FLOAT);
-    bufferDataToAttrib(program, "vColor", vColor, 3, gl.FLOAT);
+    bufferQuad(program, q1, "vPosition");
 
+    //keyboard input detection
     window.addEventListener('keydown', function(e) {
         if (keyMap.get(e.key) == DOWN){ 
             return;
         }
         keyMap.set(e.key, JUST_PRESSED);
     });
-
     window.addEventListener('keyup', function(e) {
         keyMap.set(e.key, JUST_RELEASED);
     });
