@@ -11,5 +11,13 @@ function bufferDataToAttrib(program, attribName, data, dataLength, dataType){
 }
 
 function bufferQuad(program, quad, locString){
-    bufferDataToAttrib(program, locString, quad._vertexPosData, 2, gl.FLOAT);
+
+    bufferDataToAttrib(program, locString, quad.getVertices(), 2, gl.FLOAT);
+}
+
+function render(numVertices) {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // draw a triangles starting from index 0 and 
+    // using 3 indices 
+    gl.drawArrays(gl.TRIANGLES, 0, numVertices);
 }
