@@ -1,6 +1,7 @@
 "use strict";
 
 var canvas, gl, program;
+var _camera;
 
 var NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
@@ -123,6 +124,7 @@ window.onload = function init() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
+    
     //
     //  Load shaders and initialize attribute buffers
     //
@@ -131,6 +133,9 @@ window.onload = function init() {
     gl.useProgram(program);
 
     colorCube();
+
+    //init camera
+    _camera = new Camera();
 
     // Create and initialize  buffer objects
 
@@ -159,14 +164,19 @@ window.onload = function init() {
     document.getElementById("slider3").onchange = function(event) {
         theta[2] = event.target.value;
     };
-
+    document.getElementById("slider4").onchange = function(event) {
+        _camera.setPos(vec3(0,0,event.target.value));
+    };
+    document.getElementById("slider5").onchange = function(event) {
+        _camera.setAz(event.target.value);
+    };
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
     projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 
     //projectionMatrix = ortho(-10, 10, -10, 10, -10, 10);
 
     /// *** Changed Code HERE
-    projectionMatrix = perspective(fovy, aspect, near, far);
+    //projectionMatrix = _camera.getPerspectiveMatrix();
 
     render();
 }
@@ -210,7 +220,7 @@ function lowerArm() {
 var render = function() {
 
  
-    projectionMatrix = perspective(fovy, aspect, near, far);
+    projectionMatrix = _camera.getPerspectiveMatrix();
 
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
@@ -242,5 +252,6 @@ var render = function() {
 
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
+    _camera.frameDone();
     requestAnimFrame(render);
 }

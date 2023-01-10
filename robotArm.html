@@ -39,7 +39,9 @@ void main()
 <script type="text/javascript" src="Tools/initShaders.js"></script>
 <script type="text/javascript" src="Tools/MV.js"></script>
 <script type="text/javascript" src="Tools/webgl-utils.js"></script>
+
 <script type="text/javascript" src="robotArm.js"></script>
+<script type="text/javascript" src="camera.js"></script>
 
 <div>
     body angle -180 <input id="slider1" type="range" min="-180" max="180" step="10" value="0" />
@@ -53,6 +55,16 @@ void main()
 
 <div>
     upper arm angle -180 <input id="slider3" type="range" min="-180" max="180" step="10" value="0" />
+    180
+</div><br />
+
+<div>
+    camera z -2 <input id="slider4" type="range" min="-2" max="2" step="0.1" value="0" />
+    2
+</div><br />
+
+<div>
+    camera az -180 <input id="slider5" type="range" min="-180" max="180" step="1" value="0" />
     180
 </div><br />
 
