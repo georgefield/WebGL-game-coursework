@@ -40,6 +40,10 @@ class Camera{
         this.el += mouseChange.y * this.mouseSensitivity;
     }
 
+    movePosLocal(x, y, z){ //move in camera space
+
+    }
+
     //getters
     getPerspectiveMatrix(){
         //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...

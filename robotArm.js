@@ -3,6 +3,7 @@
 var canvas, gl, program;
 var _camera;
 var _mouse;
+var _keyboard;
 
 var NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
@@ -138,6 +139,7 @@ window.onload = function init() {
     //init classes
     _camera = new Camera();
     _mouse = new Mouse();
+    _keyboard = new Keyboard();
 
     // Create and initialize  buffer objects
 
@@ -216,7 +218,7 @@ function lowerArm() {
 //----------------------------------------------------------------------------
 
 
-var render = function() {
+function render() {
 
  
     projectionMatrix = _camera.getPerspectiveMatrix();
@@ -240,9 +242,22 @@ var render = function() {
 
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
-    _camera.followMouse(_mouse.getMouseChange());
+
+    processInput();
 
     _camera.frameDone();
     _mouse.frameDone();
+    _keyboard.frameDone();
     requestAnimFrame(render);
+}
+
+function processInput(){
+    _camera.followMouse(_mouse.getMouseChange());
+
+    if (_keyboard.keyTest("w", DOWN)){
+        console.log("w down");
+    }
+    if(_keyboard.keyTest("w", JUST_PRESSED)){
+        console.log("w pressed");
+    }
 }
