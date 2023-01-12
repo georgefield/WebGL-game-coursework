@@ -1,4 +1,4 @@
-"use strict";
+
 
 var canvas, gl, program;
 var _camera;
@@ -141,6 +141,11 @@ window.onload = function init() {
     _mouse = new Mouse();
     _keyboard = new Keyboard();
 
+    //lock cursor to canvas on click
+    canvas.onclick = function() {
+        canvas.requestPointerLock();
+    }
+
     // Create and initialize  buffer objects
 
     vBuffer = gl.createBuffer();
@@ -254,10 +259,34 @@ function render() {
 function processInput(){
     _camera.followMouse(_mouse.getMouseChange());
 
-    if (_keyboard.keyTest("w", DOWN)){
-        console.log("w down");
+    let movementVel = getMovementVelocity();
+    _camera.setVelLocal(movementVel[0], movementVel[1], movementVel[2]);
+}
+
+const _movementSpeed = 15;
+function getMovementVelocity(){
+    let vel = new vec3(0);
+    if (_keyboard.keyTest("w",DOWN)){
+        vel[2] += 1;
     }
-    if(_keyboard.keyTest("w", JUST_PRESSED)){
-        console.log("w pressed");
+
+    if (_keyboard.keyTest("s",DOWN)){
+        vel[2] -= 1;
     }
+
+    if (_keyboard.keyTest("a",DOWN)){
+        vel[0] += 1;
+    }
+
+    if (_keyboard.keyTest("d", DOWN)){
+        vel[0] -= 1;
+    }
+
+    //normalise so strafing has no benefit. then scale to movement speed
+    if (length(vel) != 0){
+        normalize(vel);
+        vel = scale(_movementSpeed, vel);
+    }
+
+    return vel;
 }

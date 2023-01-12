@@ -16,8 +16,8 @@ class Mouse {
     }
   
     handleMouseMove(event) { //need to change so average over 10 frames as so fast that change is 0 
-        this.currentX = event.clientX;
-        this.currentY = event.clientY;
+        this.currentX += event.movementX;
+        this.currentY += event.movementY;
     }
   
     frameDone() { //call every frame

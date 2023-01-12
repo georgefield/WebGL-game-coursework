@@ -1,12 +1,12 @@
 class Camera{
     constructor(){
-        this.pos = new vec3(0, 0, -25);
+        this.pos = new vec3(0, 0, 0);
         this.vel = new vec3(0);
 
         this.az = 0;
         this.el = 0;
 
-        this.mouseSensitivity = 0.1;
+        this.mouseSensitivity = 0.3;
 
         this.previousTime = Date.now(); //used to calculate time between frames
     }
@@ -14,7 +14,10 @@ class Camera{
     frameDone(){ //call every fram
         //update position based on velocity
         let elapsed = (Date.now() - this.previousTime) * 0.001; //*0.001 as date.now() returns milliseconds
+        //update pos
         this.pos[0] += this.vel[0] * elapsed;
+        this.pos[1] += this.vel[1] * elapsed;
+        this.pos[2] += this.vel[2] * elapsed;
         this.previousTime = Date.now();
     }
 
@@ -40,10 +43,18 @@ class Camera{
         this.el += mouseChange.y * this.mouseSensitivity;
     }
 
-    movePosLocal(x, y, z){ //move in camera space
+    setVelLocal(x,y,z){ //move in camera space
+        let localVel = new vec4(x,y,z,0);
+        
+        let globalToLocal = mult(
+            rotateX(this.el),
+            rotateY(this.az)
+        );
+        let localToGlobal = inverse(globalToLocal);
 
+        this.vel = mult(localToGlobal, localVel);
     }
-
+    
     //getters
     getPerspectiveMatrix(){
         //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...
