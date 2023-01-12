@@ -2,6 +2,7 @@
 
 var canvas, gl, program;
 var _camera;
+var _mouse;
 
 var NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
@@ -134,8 +135,9 @@ window.onload = function init() {
 
     colorCube();
 
-    //init camera
+    //init classes
     _camera = new Camera();
+    _mouse = new Mouse();
 
     // Create and initialize  buffer objects
 
@@ -164,12 +166,9 @@ window.onload = function init() {
     document.getElementById("slider3").onchange = function(event) {
         theta[2] = event.target.value;
     };
-    document.getElementById("slider4").onchange = function(event) {
-        _camera.setPos(vec3(0,0,event.target.value));
-    };
-    document.getElementById("slider5").onchange = function(event) {
-        _camera.setAz(event.target.value);
-    };
+
+
+
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
     projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 
@@ -225,22 +224,11 @@ var render = function() {
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
 
-
-    /// *** Changed Code HERE
-    var eye;
-    let th = 30.0 * Math.PI / 180.0;
-    let phi = 30.0 * Math.PI / 180.0;
-    let radius = 25.0;
-    eye = vec3(radius * Math.sin(th) * Math.cos(phi),
-        radius * Math.sin(th) * Math.sin(phi), radius * Math.cos(th));
-
-    const at = vec3(0.0, 0.0, 0.0);
-    const up = vec3(0.0, 1.0, 0.0);
-    modelViewMatrix = lookAt(eye, at, up);
-    modelViewMatrix = mult(modelViewMatrix, rotate(theta[Base], 0, 1, 0));
+    modelViewMatrix = rotate(theta[Base], 0, 1, 0);
     ///
 
     base();
+
 
     modelViewMatrix = mult(modelViewMatrix, translate(0.0, BASE_HEIGHT, 0.0));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[LowerArm], 0, 0, 1));
@@ -252,6 +240,9 @@ var render = function() {
 
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
+    _camera.followMouse(_mouse.getMouseChange());
+
     _camera.frameDone();
+    _mouse.frameDone();
     requestAnimFrame(render);
 }

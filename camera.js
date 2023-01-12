@@ -1,15 +1,17 @@
 class Camera{
     constructor(){
-        this.pos = new vec3(0);
+        this.pos = new vec3(0, 0, -25);
         this.vel = new vec3(0);
 
         this.az = 0;
         this.el = 0;
 
-        this.previousTime = Date.now()
+        this.mouseSensitivity = 0.1;
+
+        this.previousTime = Date.now(); //used to calculate time between frames
     }
 
-    frameDone(){
+    frameDone(){ //call every fram
         //update position based on velocity
         let elapsed = (Date.now() - this.previousTime) * 0.001; //*0.001 as date.now() returns milliseconds
         this.pos[0] += this.vel[0] * elapsed;
@@ -31,6 +33,11 @@ class Camera{
 
     setEl(el){
         this.el = el;
+    }
+
+    followMouse(mouseChange){
+        this.az += mouseChange.x * this.mouseSensitivity;
+        this.el += mouseChange.y * this.mouseSensitivity;
     }
 
     //getters
