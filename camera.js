@@ -1,12 +1,12 @@
 class Camera{
     constructor(){
-        this.pos = new vec3(0, 0, 0);
+        this.pos = new vec3(-5, -5, -10);
         this.vel = new vec3(0);
 
         this.az = 0;
         this.el = 0;
 
-        this.mouseSensitivity = 0.3;
+        this.mouseSensitivity = 0.01;
 
         this.previousTime = Date.now(); //used to calculate time between frames
     }
@@ -30,17 +30,14 @@ class Camera{
         this.vel = new vec3(vel[0], vel[1], vel[2]);
     }
 
-    setAz(az){
-        this.az = az;
-    }
-
-    setEl(el){
-        this.el = el;
-    }
-
     followMouse(mouseChange){
         this.az += mouseChange.x * this.mouseSensitivity;
         this.el += mouseChange.y * this.mouseSensitivity;
+    }
+
+    setAzEl(AzEl){
+        this.az = AzEl.x;
+        this.el = AzEl.y;
     }
 
     setVelLocal(x,y,z){ //move in camera space

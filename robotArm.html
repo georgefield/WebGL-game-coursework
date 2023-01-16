@@ -6,7 +6,6 @@
 attribute  vec4 vColor;
 varying vec4 fColor;
 varying vec3 scaleFactor;
-uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
 void main()
@@ -19,8 +18,9 @@ void main()
     0,0,scaleFactor.z,0,
     0,0,0,1);
     ///
-    fColor = vColor;
-    gl_Position =  projectionMatrix * modelViewMatrix * scale * vPosition;
+    fColor = vColor;//vec4(0.0,(vPosition.z + 10.0) / 15.0,0.0,1.0);
+
+    gl_Position =  projectionMatrix * vPosition;
 }
 </script>
 
@@ -42,27 +42,12 @@ void main()
 
 <script type="text/javascript" src="robotArm.js"></script>
 <script type="text/javascript" src="camera.js"></script>
+<script type="text/javascript" src="Object.js"></script>
 <script type="text/javascript" src="IO.js"></script>
 
 
-<div>
-    body angle -180 <input id="slider1" type="range" min="-180" max="180" step="10" value="0" />
-    180
-</div><br />
-
-<div>
-    lower arm angle -180 <input id="slider2" type="range" min="-180" max="180" step="10" value="0" />
-    180
-</div><br />
-
-<div>
-    upper arm angle -180 <input id="slider3" type="range" min="-180" max="180" step="10" value="0" />
-    180
-</div><br />
-
-
 <body>
-    <canvas id="gl-canvas" width="512" height=" 512">
+    <canvas id="gl-canvas" width="1024" height=" 768">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
 </body>

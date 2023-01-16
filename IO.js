@@ -28,6 +28,10 @@ class Mouse {
     getMouseChange() {
         return {x: this.currentX - this.previousX, y: this.currentY - this.previousY};
     }
+
+    getMousePos(){
+        return {x: this.currentX, y:this.currentY};
+    }
 }
   
 
