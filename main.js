@@ -4,11 +4,18 @@ var canvas, gl, program;
 var _camera;
 var _mouse;
 var _keyboard;
-var _icos;
+var _m;
+
+var projectionMatrixLoc;
+var modelViewMatrixLoc;
 
 
+window.onload = function run(){
+    initSystems();
+    gameLoop();
+}
 
-window.onload = function init() {
+function initSystems(){
 
     canvas = document.getElementById("gl-canvas");
 
@@ -34,60 +41,45 @@ window.onload = function init() {
     _camera = new Camera();
     _mouse = new Mouse();
     _keyboard = new Keyboard();
-    _icos = new Icosahedron();
-    _icos.initPoints();
-    console.log(_icos.triangle(1,4,9));
-    console.log(_icos.points);
-    console.log(flatten(_icos.points));
-    console.log(flatten(_icos.colours));
+    _m = new Meteorite();
 
     //lock cursor to canvas on click
     canvas.onclick = function() {
         canvas.requestPointerLock();
     }
 
-    // Create and initialize  buffer objects
-
-    vBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(_icos.points), gl.STATIC_DRAW);
-
-    var vPosition = gl.getAttribLocation(program, "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    cBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(_icos.colours), gl.STATIC_DRAW);
-
-    var vColor = gl.getAttribLocation(program, "vColor");
-    gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vColor);
-
     projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
+    modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
+
+    _m.setVel(vec3(5,0,0));
+    _m.setScale(4);
 
     render();
 }
 
+function gameLoop(){
+    processInput();
+    render();
+
+    requestAnimationFrame(gameLoop);
+}
+
 
 function render() {
-
  
-    projectionMatrix = _camera.getPerspectiveMatrix();
-
-
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "projectionMatrix"), false, flatten(projectionMatrix));
+    let projectionMatrix = _camera.getPerspectiveMatrix();
+    let modelViewMatrix = _m.getModelViewMatrix();
 
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
-    gl.drawArrays(gl.TRIANGLES, 0, _icos.numVertices);
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
 
-    processInput();
+    _m.draw();
 
     _camera.frameDone();
     _mouse.frameDone();
     _keyboard.frameDone();
-    requestAnimFrame(render);
+    _m.frameDone();
 }
 
 function processInput(){

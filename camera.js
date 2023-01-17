@@ -56,7 +56,7 @@ class Camera{
     getPerspectiveMatrix(){
         //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...
         let ret = mult(mult(mult(
-        perspective(120.0, 1.0, 3.5, 100.0),
+        perspective(100.0, 1.0, 1.0, 100.0),
         rotateX(this.el)), 
         rotateY(this.az)),
         translate(this.pos[0], this.pos[1], this.pos[2]));
