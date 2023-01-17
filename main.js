@@ -5,6 +5,7 @@ var canvas, gl;
 var meteoriteProgram;
 var backgroundProgram;
 var sunProgram;
+var hudProgram;
 
 var _camera;
 var _mouse;
@@ -12,6 +13,7 @@ var _keyboard;
 var _m;
 var _background;
 var _sun;
+var _hudArrow;
 
 
 window.onload = function run(){
@@ -32,7 +34,6 @@ function initSystems(){
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
-
     
     //
     //  Load shaders and initialize attribute buffers
@@ -40,6 +41,7 @@ function initSystems(){
     meteoriteProgram = initShaders(gl, "meteorite-vert", "meteorite-frag");
     backgroundProgram = initShaders(gl, "background-vert", "background-frag");
     sunProgram = initShaders(gl, "sun-vert", "sun-frag");
+    hudProgram = initShaders(gl, "hud-vert", "hud-frag");
 
 
     //init classes
@@ -49,6 +51,7 @@ function initSystems(){
 
     _m = new Meteorite();
     _sun = new Sun();
+    _hudArrow = new HudArrow();
 
     _background = new Quad();
     _background.init(vec4(-1,-1,2,2));
@@ -85,6 +88,7 @@ function render(){
     renderBackground();
     renderSun();
     renderMeteorites();
+    renderHud();
 }
 
 function renderMeteorites() {
@@ -126,13 +130,19 @@ function renderBackground(){
 
     let dotProduct = dot(sunLookDirection, vec3CameraLookDirection);
     let angle = Math.acos(dotProduct / (length(sunLookDirection) * length(vec3CameraLookDirection)));  
-    console.log(angle);
+
     gl.uniform1f(angleLoc, angle);
     _background.draw(backgroundProgram);
 }
 
+function renderHud(){
+    gl.useProgram(hudProgram);
+
+    _hudArrow.draw(hudProgram);
+}
+
 function processInput(){
-    _camera.followMouse(_mouse.getMouseChange());
+    _camera.followMouse(_mouse.getMousePos());
 
     let movementVel = getMovementVelocity();
     _camera.setVelLocal(movementVel[0], movementVel[1], movementVel[2]);

@@ -6,7 +6,7 @@ class Camera{
         this.az = 0;
         this.el = 0;
 
-        this.mouseSensitivity = 1;
+        this.mouseSensitivity = 0.01;
 
         this.previousTime = Date.now(); //used to calculate time between frames
     }
