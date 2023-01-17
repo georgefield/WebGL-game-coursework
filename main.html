@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 
-<script id="vertex-shader" type="x-shader/x-vertex">
+<script id="meteorite-vert" type="x-shader/x-vertex">
 
 attribute vec4 vertex;
 attribute vec3 normal;
@@ -23,7 +23,7 @@ void main()
 
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="meteorite-frag" type="x-shader/x-fragment">
 
     precision mediump float;
 
@@ -35,13 +35,78 @@ void main()
 }
 </script>
 
+<script id="background-vert" type="x-shader/x-fragment">
+attribute vec2 vertex;
+
+varying vec4 fColor;
+
+uniform float angle;
+
+void main()
+{
+    
+    float normalisedAngle = 1.0 - (abs(angle) / 3.1415);
+    float tensionNormAngle = normalisedAngle * normalisedAngle * normalisedAngle;
+
+    gl_Position = vec4(vertex, 0.99999, 1);
+    fColor = vec4(tensionNormAngle * 0.7,0.05 + tensionNormAngle * 0.6,0.12 + tensionNormAngle * 0.4,1);
+}
+</script>
+
+<script id="background-frag" type="x-shader/x-fragment">
+
+    precision mediump float;
+
+varying  vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+<script id="sun-vert" type="x-shader/x-vertex">
+
+attribute vec4 vertex;
+attribute vec3 normal;
+
+varying vec4 fColor;
+
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
+
+
+void main()
+{
+    fColor = vec4(0.9,1,0.7,1); //normal calculated as approximation of icosahedron (a sphere)
+
+    gl_Position =  projectionMatrix * modelViewMatrix * vertex;
+}
+
+</script>
+
+<script id="sun-frag" type="x-shader/x-fragment">
+    
+    precision mediump float;
+
+varying  vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+    
+
 <script type="text/javascript" src="Tools/initShaders.js"></script>
 <script type="text/javascript" src="Tools/MV.js"></script>
 <script type="text/javascript" src="Tools/webgl-utils.js"></script>
 
 <script type="text/javascript" src="main.js"></script>
 <script type="text/javascript" src="camera.js"></script>
-<script type="text/javascript" src="Meteorite.js"></script>
+<script type="text/javascript" src="Objects/Meteorite.js"></script>
+<script type="text/javascript" src="Objects/Sun.js"></script>
+<script type="text/javascript" src="Objects/Objects.js"></script>
 <script type="text/javascript" src="IO.js"></script>
 
 

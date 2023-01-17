@@ -1,19 +1,9 @@
-function float32Concat(first, second)
-{
-    result = new Float32Array(first.length + second.length);
-
-    result.set(first);
-    result.set(second, first.length);
-
-    return result;
-}
 
 class Icosahedron{
     constructor(){
         this.numVertices = 60; //20 faces, 3 points for each face
 
         this.points = [];
-        this.normals = [];
 
         this.vboID;
 
@@ -86,7 +76,7 @@ class Icosahedron{
         gl.bufferData(gl.ARRAY_BUFFER, flatten(this.points), gl.STATIC_DRAW);
     }
 
-    draw(){
+    draw(program){
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vboID)
         let vPosition = gl.getAttribLocation(program, "vertex");
         gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -96,61 +86,42 @@ class Icosahedron{
     }
 }
 
-
-class Meteorite{
+class Quad{
     constructor(){
-        this.model = new Icosahedron();
+        this.numVertices = 6;
 
-        this.scale = 1.0;
-        this.pos = vec3(0,0,0);
-        this.vel = vec3(0,0,0);
-        this.colour = vec4(0.0,1.0,0,1.0);
-        this.ambientLightDirection = vec3(0.0,1.0,0.0);
+        this.points = [];
 
-        this.model.init();
+        this.vboID = 0;
+    }
+    
+    init(rect){
+        let vertices = [
+            vec2(rect[0], rect[1]),
+            vec2(rect[0] + rect[2], rect[1]),
+            vec2(rect[0], rect[1] + rect[3]),
+            vec2(rect[0] + rect[2], rect[1] + rect[3])
+        ]
 
-        this.previousTime = Date.now(); //used to calculate time between frames
+        this.points.push(vertices[0]);
+        this.points.push(vertices[1]);
+        this.points.push(vertices[2]);
+        this.points.push(vertices[1]);
+        this.points.push(vertices[2]);
+        this.points.push(vertices[3]);
 
+        this.vboID = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vboID);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(this.points), gl.STATIC_DRAW);
     }
 
-    frameDone(){ //call every frame
-        //update position based on velocity
-        let elapsed = (Date.now() - this.previousTime) * 0.001; //*0.001 as date.now() returns milliseconds
-        //update pos
-        this.pos[0] += this.vel[0] * elapsed;
-        this.pos[1] += this.vel[1] * elapsed;
-        this.pos[2] += this.vel[2] * elapsed;
-        this.previousTime = Date.now();
+    draw(program){
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vboID)
+        let vPosition = gl.getAttribLocation(program, "vertex");
+        gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vPosition);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
     }
 
-    //setters
-    setPos(pos){
-        this.pos = new vec3(pos[0], pos[1], pos[2]);
-    }
-
-    setVel(vel){
-        this.vel = new vec3(vel[0], vel[1], vel[2]);
-    }
-
-    setScale(scale){
-        this.scale = scale;
-    }
-
-    //getters
-    getModelViewMatrix(){
-        return mult(
-            translate(this.pos[0], this.pos[1], this.pos[2]), 
-            scalem(this.scale, this.scale, this.scale)
-        );
-    }
-
-    draw(){
-        let colourUniformLoc = gl.getUniformLocation(program, "vColor");
-        gl.uniform4fv(colourUniformLoc, this.colour);
-
-        let ambientLightDirectionLoc = gl.getUniformLocation(program, "ambientLightDirection");
-        gl.uniform3fv(ambientLightDirectionLoc, this.ambientLightDirection);
-
-        this.model.draw();
-    }
 }

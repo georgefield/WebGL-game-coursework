@@ -1,13 +1,17 @@
 
 
-var canvas, gl, program;
+var canvas, gl;
+
+var meteoriteProgram;
+var backgroundProgram;
+var sunProgram;
+
 var _camera;
 var _mouse;
 var _keyboard;
 var _m;
-
-var projectionMatrixLoc;
-var modelViewMatrixLoc;
+var _background;
+var _sun;
 
 
 window.onload = function run(){
@@ -33,26 +37,30 @@ function initSystems(){
     //
     //  Load shaders and initialize attribute buffers
     //
-    program = initShaders(gl, "vertex-shader", "fragment-shader");
+    meteoriteProgram = initShaders(gl, "meteorite-vert", "meteorite-frag");
+    backgroundProgram = initShaders(gl, "background-vert", "background-frag");
+    sunProgram = initShaders(gl, "sun-vert", "sun-frag");
 
-    gl.useProgram(program);
 
     //init classes
     _camera = new Camera();
     _mouse = new Mouse();
     _keyboard = new Keyboard();
+
     _m = new Meteorite();
+    _sun = new Sun();
+
+    _background = new Quad();
+    _background.init(vec4(-1,-1,2,2));
 
     //lock cursor to canvas on click
     canvas.onclick = function() {
         canvas.requestPointerLock();
     }
 
-    projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
-    modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
-
     _m.setVel(vec3(5,0,0));
     _m.setScale(4);
+    _m.setAmbientLightDirection(_sun.pos);
 
     render();
 }
@@ -61,29 +69,70 @@ function gameLoop(){
     processInput();
     render();
 
+    frameDone();
     requestAnimationFrame(gameLoop);
 }
 
-
-function render() {
- 
-    let projectionMatrix = _camera.getPerspectiveMatrix();
-    let modelViewMatrix = _m.getModelViewMatrix();
-
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
-
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-
-    _m.draw();
-
+function frameDone(){
     _camera.frameDone();
     _mouse.frameDone();
     _keyboard.frameDone();
     _m.frameDone();
+    _sun.frameDone();
+}
+
+function render(){
+    renderBackground();
+    renderSun();
+    renderMeteorites();
+}
+
+function renderMeteorites() {
+ 
+    gl.useProgram(meteoriteProgram);
+
+    let projectionMatrix = _camera.getPerspectiveMatrix();
+    let modelViewMatrix = _m.getModelViewMatrix();
+
+    let projectionMatrixLoc = gl.getUniformLocation(meteoriteProgram, "projectionMatrix");
+    let modelViewMatrixLoc = gl.getUniformLocation(meteoriteProgram, "modelViewMatrix");
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+
+    _m.draw();
+}
+
+function renderSun(){
+    gl.useProgram(sunProgram);
+
+    let projectionMatrix = _camera.getPerspectiveMatrixNoTranslate();
+
+    let sunProjectionMatrixLoc = gl.getUniformLocation(sunProgram, "projectionMatrix");
+
+    gl.uniformMatrix4fv(sunProjectionMatrixLoc, false, flatten(projectionMatrix));
+
+    _sun.draw();
+}
+
+function renderBackground(){
+
+    gl.useProgram(backgroundProgram);
+
+    let sunLookDirection = _sun.pos;
+    let cameraLookDirection = _camera.getLookDirectionVector();
+    let vec3CameraLookDirection = vec3(cameraLookDirection[0],cameraLookDirection[1],cameraLookDirection[2]);
+
+    let angleLoc = gl.getUniformLocation(backgroundProgram, "angle");
+
+    let dotProduct = dot(sunLookDirection, vec3CameraLookDirection);
+    let angle = Math.acos(dotProduct / (length(sunLookDirection) * length(vec3CameraLookDirection)));  
+    console.log(angle);
+    gl.uniform1f(angleLoc, angle);
+    _background.draw(backgroundProgram);
 }
 
 function processInput(){
-    _camera.setAzEl(_mouse.getMousePos());
+    _camera.followMouse(_mouse.getMouseChange());
 
     let movementVel = getMovementVelocity();
     _camera.setVelLocal(movementVel[0], movementVel[1], movementVel[2]);
