@@ -138,6 +138,10 @@ function renderBackground(){
 function renderHud(){
     gl.useProgram(hudProgram);
 
+    let arrowModelViewMatrixLoc = gl.getUniformLocation(hudProgram, "arrowModelViewMatrix");
+
+    gl.uniformMatrix4fv(arrowModelViewMatrixLoc, false, flatten(_hudArrow.getArrowModelViewMatrix(_mouse)));
+
     _hudArrow.draw(hudProgram);
 }
 

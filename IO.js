@@ -18,6 +18,19 @@ class Mouse {
     handleMouseMove(event) { //need to change so average over 10 frames as so fast that change is 0 
         this.currentX += event.movementX;
         this.currentY += event.movementY;
+
+        if (this.currentX < -canvas.width * 0.5){
+            this.currentX = -canvas.width * 0.5;
+        }
+        if (this.currentX > canvas.width * 0.5){
+            this.currentX = canvas.width * 0.5;
+        }
+        if (this.currentY < -canvas.height * 0.5){
+            this.currentY = -canvas.height * 0.5;
+        }
+        if (this.currentY > canvas.height * 0.5){
+            this.currentY = canvas.height * 0.5;
+        }
     }
   
     frameDone() { //call every frame

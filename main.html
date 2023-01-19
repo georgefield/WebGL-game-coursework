@@ -102,12 +102,13 @@ attribute vec2 vertex;
 
 varying vec4 fColor;
 
+uniform mat4 arrowModelViewMatrix;
 
 void main()
 {
-    fColor = vec4(1,1,0,1);
+    fColor = vec4(0.2,1,0.3,1);
 
-    gl_Position = vec4(vertex,0.01,1);
+    gl_Position = arrowModelViewMatrix * vec4(vertex,0.01,1);
 }
 
 </script>
