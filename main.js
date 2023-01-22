@@ -1,20 +1,25 @@
-
-
 var canvas, gl;
 
+//glsl programs
 var meteoriteProgram;
 var backgroundProgram;
 var sunProgram;
 var hudProgram;
+var projectileProgram;
 
 var _camera;
 var _mouse;
 var _keyboard;
-var _m;
+
 var _background;
 var _sun;
 var _hudArrow;
 
+var _level;
+var _levels;
+var _levelCounter;
+
+var _projectileArray = [];
 
 window.onload = function run(){
     initSystems();
@@ -32,8 +37,9 @@ function initSystems(){
 
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
     
     //
     //  Load shaders and initialize attribute buffers
@@ -42,6 +48,7 @@ function initSystems(){
     backgroundProgram = initShaders(gl, "background-vert", "background-frag");
     sunProgram = initShaders(gl, "sun-vert", "sun-frag");
     hudProgram = initShaders(gl, "hud-vert", "hud-frag");
+    projectileProgram = initShaders(gl, "projectile-vert", "projectile-frag");
 
 
     //init classes
@@ -49,30 +56,51 @@ function initSystems(){
     _mouse = new Mouse();
     _keyboard = new Keyboard();
 
-    _m = new Meteorite();
     _sun = new Sun();
+    _camera.setAmbientLightDirection(_sun.pos);
     _hudArrow = new HudArrow();
-
-    _background = new Quad();
-    _background.init(vec4(-1,-1,2,2));
+    _background = new Quad2D(vec4(-1,-1,2,2));
 
     //lock cursor to canvas on click
     canvas.onclick = function() {
         canvas.requestPointerLock();
     }
 
-    _m.setVel(vec3(5,0,0));
-    _m.setScale(4);
-    _m.setAmbientLightDirection(_sun.pos);
-
-    render();
+    _levelCounter = 0;
+    _level = level1;
+    _levels = [level1, level2];
+    _levels[0].start();
 }
 
 function gameLoop(){
-    processInput();
-    render();
+    let gameState = getGameState();
+    if (gameState == "playing"){
+        processInput();
+        collisions();
+        render();
 
-    frameDone();
+        frameDone();
+    }
+    else{
+        player.reset();
+        if (gameState == "next level"){
+            _levelCounter += 1;
+            if (_levelCounter >= 2){ //only 2 levels
+                win();
+            }
+            _level = _levels[_levelCounter];
+            _level.start();
+        }
+        else if(gameState == "space station destroyed"){
+            _level.start();
+        }
+        else if (gameState == "player dead"){
+            //pause for 2 seconds
+            _level.start();
+        }
+        
+    }
+    
     requestAnimationFrame(gameLoop);
 }
 
@@ -80,40 +108,32 @@ function frameDone(){
     _camera.frameDone();
     _mouse.frameDone();
     _keyboard.frameDone();
-    _m.frameDone();
     _sun.frameDone();
+    _level.frameDone();
+    player.frameDone();
 }
 
 function render(){
     renderBackground();
     renderSun();
-    renderMeteorites();
     renderHud();
+    renderProjectiles();
+    renderMeteorites();
 }
 
 function renderMeteorites() {
- 
+
     gl.useProgram(meteoriteProgram);
 
-    let projectionMatrix = _camera.getPerspectiveMatrix();
-    let modelViewMatrix = _m.getModelViewMatrix();
+    for (let  i = 0; i < _level.meteoriteArray.length; i++){
+        _level.meteoriteArray[i].draw();
+    }
 
-    let projectionMatrixLoc = gl.getUniformLocation(meteoriteProgram, "projectionMatrix");
-    let modelViewMatrixLoc = gl.getUniformLocation(meteoriteProgram, "modelViewMatrix");
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-
-    _m.draw();
+    _level.spaceStation.draw();
 }
 
 function renderSun(){
     gl.useProgram(sunProgram);
-
-    let projectionMatrix = _camera.getPerspectiveMatrixNoTranslate();
-
-    let sunProjectionMatrixLoc = gl.getUniformLocation(sunProgram, "projectionMatrix");
-
-    gl.uniformMatrix4fv(sunProjectionMatrixLoc, false, flatten(projectionMatrix));
 
     _sun.draw();
 }
@@ -138,44 +158,76 @@ function renderBackground(){
 function renderHud(){
     gl.useProgram(hudProgram);
 
-    let arrowModelViewMatrixLoc = gl.getUniformLocation(hudProgram, "arrowModelViewMatrix");
-
-    gl.uniformMatrix4fv(arrowModelViewMatrixLoc, false, flatten(_hudArrow.getArrowModelViewMatrix(_mouse)));
-
     _hudArrow.draw(hudProgram);
 }
 
-function processInput(){
-    _camera.followMouse(_mouse.getMousePos());
+function renderProjectiles(){
+    gl.useProgram(projectileProgram);
 
-    let movementVel = getMovementVelocity();
-    _camera.setVelLocal(movementVel[0], movementVel[1], movementVel[2]);
+    for (let i =0; i < player.projectiles.length; i++){
+        player.projectiles[i].draw();
+    }
 }
 
-const _movementSpeed = 15;
-function getMovementVelocity(){
-    let vel = new vec3(0);
-    if (_keyboard.keyTest("w",DOWN)){
-        vel[2] += 1;
+function processInput(){
+    _camera.addAzEl(_mouse.getMousePos());
+
+    let acceleration = player.getAcceleration();
+    _camera.setAccLocal(acceleration);
+
+    if (_mouse.clicked){
+        _mouse.clicked = false; //reset
+        player.fire();
+    }
+}
+
+function collisions(){
+    for (let  i = 0; i < _level.meteoriteArray.length; i++){
+        //meteorite hits space station
+        let meteorite = _level.meteoriteArray[i];
+        if (meteorite.timeDestroyed == undefined && isColliding(meteorite.collisionModel, _level.spaceStation.object.collisionModel)){
+            meteorite.timeDestroyed = Date.now();
+            _level.spaceStation.object.timeDestroyed = Date.now();
+        }
+
+        //player hits meteorite
+        if (isColliding(meteorite.collisionModel, player.collisionModel)){
+            player.isDead = true;
+        }
+
+        //projectile hits meteorite
+        for (let j = 0; j < player.projectiles.length; j++){
+            if (meteorite.timeDestroyed == undefined && isColliding(meteorite.collisionModel, player.projectiles[j].collisionModel)){
+                meteorite.timeDestroyed = Date.now();
+                player.projectiles[j].erase = true;
+            }
+        }
     }
 
-    if (_keyboard.keyTest("s",DOWN)){
-        vel[2] -= 1;
+    //projectile hits space station
+    for (let j = 0; j < player.projectiles.length; j++){
+        if (isColliding(_level.spaceStation.object.collisionModel, player.projectiles[j].collisionModel)){
+            player.projectiles[j].erase = true;
+        }
     }
 
-    if (_keyboard.keyTest("a",DOWN)){
-        vel[0] += 1;
+    //player hits space station
+    if (isColliding(_level.spaceStation.object.collisionModel, player.collisionModel)){
+        console.log("dead");
+        player.isDead = true;
+    }
+}
+
+function getGameState(){
+    if (_level.spaceStation.object.erase == true){
+        return "space station destroyed";
+    }
+    if (player.isDead == true){
+        return "player dead";
+    }
+    if (_level.meteoriteArray.length == 0){
+        return "next level";
     }
 
-    if (_keyboard.keyTest("d", DOWN)){
-        vel[0] -= 1;
-    }
-
-    //normalise so strafing has no benefit. then scale to movement speed
-    if (length(vel) != 0){
-        normalize(vel);
-        vel = scale(_movementSpeed, vel);
-    }
-
-    return vel;
+    return "playing";
 }

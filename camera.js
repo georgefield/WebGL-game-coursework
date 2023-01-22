@@ -1,26 +1,50 @@
 class Camera{
     constructor(){
-        this.pos = new vec3(-5, -5, -10);
-        this.vel = new vec3(0);
+        this.pos = vec3(0,0,0);
+        this.vel = vec3(0);
+        this.acc = vec3(0);
 
         this.az = 0;
         this.el = 0;
 
+        this.friction = 5; //lose 5 units of speed per second
+
         this.mouseSensitivity = 0.01;
+
+        this.ambientLightDirection = vec3(0,1,0);
 
         this.previousTime = Date.now(); //used to calculate time between frames
     }
 
-    frameDone(){ //call every fram
-        //update position based on velocity
+    frameDone(){ //call every frame
+
         let elapsed = (Date.now() - this.previousTime) * 0.001; //*0.001 as date.now() returns milliseconds
-        //update pos
+
+        //cap velocity
+        if (length(this.vel) > player.maximumMovementSpeed){
+            normalize(this.vel);
+            this.vel = scale(player.maximumMovementSpeed, this.vel);
+        }
+
+        //update velocity based on acceleration
+        this.vel[0] += this.acc[0] * elapsed;
+        this.vel[1] += this.acc[1] * elapsed;
+        this.vel[2] += this.acc[2] * elapsed;
+        //update position based on velocity
         this.pos[0] += this.vel[0] * elapsed;
         this.pos[1] += this.vel[1] * elapsed;
         this.pos[2] += this.vel[2] * elapsed;
-        this.previousTime = Date.now();
 
-        //make sure azel is safe
+        //apply friction
+        if (length(this.vel) != 0){
+            let velLength = length(this.vel);
+            normalize(this.vel);
+            let newVelLength = velLength - (this.friction * elapsed);
+            if (newVelLength < 0){ newVelLength = 0; }
+            this.vel = scale(newVelLength, this.vel)
+        }
+
+        //make sure azel is safe (cant wrap around)
         let azWrap = 180;
         let elLim = 90;
         if (this.az > azWrap){
@@ -36,6 +60,7 @@ class Camera{
             this.el = -elLim;
         }
 
+        this.previousTime = Date.now();
     }
 
     //setters
@@ -47,35 +72,49 @@ class Camera{
         this.vel = new vec3(vel[0], vel[1], vel[2]);
     }
 
-    followMouse(mouseChange){
-        this.az += mouseChange.x * this.mouseSensitivity;
-        this.el += mouseChange.y * this.mouseSensitivity;
-    }
-
     setAzEl(AzEl){
         this.az = AzEl.x;
         this.el = AzEl.y;
     }
+    addAzEl(mouseChange){
+        this.az += mouseChange.x * this.mouseSensitivity;
+        this.el += mouseChange.y * this.mouseSensitivity;
+    }
 
-    setVelLocal(x,y,z){ //move in camera space
-        let localVel = new vec4(x,y,z,0);
-        
+    setVelLocal(vel){ //move in camera space
         let globalToLocal = mult(
             rotateX(this.el),
             rotateY(this.az)
         );
         let localToGlobal = inverse(globalToLocal);
 
-        this.vel = mult(localToGlobal, localVel);
+        this.vel = mult(localToGlobal, vec4(vel[0],vel[1],vel[2],0));
     }
-    
+
+    setAccLocal(acc){ //move in camera space
+        let globalToLocal = mult(
+            rotateX(this.el),
+            rotateY(this.az)
+        );
+        let localToGlobal = inverse(globalToLocal);
+
+        this.acc = mult(localToGlobal, vec4(acc[0],acc[1],acc[2],0));
+    }
+
+    setAmbientLightDirection(ambientLightDirection){
+        //vvv pass by value
+        this.ambientLightDirection = new vec3(ambientLightDirection[0],ambientLightDirection[1],ambientLightDirection[2]);
+        //then normalise
+        normalize(this.ambientLightDirection);
+    }
+
     //getters
     getPerspectiveMatrix(){
         //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...
         let ret = mult(mult(mult(
-        perspective(100.0, 1.0, 1.0, 150.0),
-        rotateX(this.el)), 
-        rotateY(this.az)),
+        perspective(100.0, 1.0, 1.0, 500.0),
+        rotateX(this.el)),
+        rotateY(this.az)), 
         translate(this.pos[0], this.pos[1], this.pos[2]));
         
         return ret;
@@ -85,8 +124,9 @@ class Camera{
     getPerspectiveMatrixNoTranslate(){
         let ret = mult(mult(
             perspective(100.0, 1.0, 1.0, 500.0),
-            rotateX(this.el)), 
-            rotateY(this.az));
+            rotateX(this.el)),
+            rotateY(this.az)
+        );
 
         return ret;
     }
@@ -101,5 +141,15 @@ class Camera{
             rotateX(this.el)),
             vec4(0,0,1,0)
         );
+    }
+
+    getLocalVel(){
+        let globalToLocal = mult(
+            rotateX(this.el),
+            rotateY(this.az)
+        );
+        
+        let localVel = mult(globalToLocal, vec4(this.vel[0], this.vel[1], this.vel[2], 0));
+        return vec3(localVel[0], localVel[1], localVel[2]);
     }
 }

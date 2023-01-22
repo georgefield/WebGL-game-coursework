@@ -9,10 +9,13 @@ class Mouse {
         this.currentX = 0;
         this.currentY = 0;
 
+        this.clicked = false;
+
         this.frameStart = true;
         this.anyChangeThisFrame = false; //to stop it from keeping the last change value
 
         document.addEventListener("mousemove", this.handleMouseMove.bind(this));
+        document.addEventListener("click", this.handleMouseClick.bind(this))
     }
   
     handleMouseMove(event) { //need to change so average over 10 frames as so fast that change is 0 
@@ -33,6 +36,10 @@ class Mouse {
         }
     }
   
+    handleMouseClick(){
+        this.clicked = true;
+    }
+
     frameDone() { //call every frame
         this.previousX = this.currentX;
         this.previousY = this.currentY;

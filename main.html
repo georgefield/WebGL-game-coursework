@@ -4,19 +4,21 @@
 <script id="meteorite-vert" type="x-shader/x-vertex">
 
 attribute vec4 vertex;
-attribute vec3 normal;
 
 varying vec4 fColor;
 
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
+uniform mat4 inverseRotationMatrix;
 
 uniform vec4 vColor;
 uniform vec3 ambientLightDirection;
 
 void main()
 {
-    fColor = vec4(vec3(vColor) * (dot(ambientLightDirection, vec3(vertex)) / 2.0 + 0.5),1); //normal calculated as approximation of icosahedron (a sphere)
+    vec3 aldAccountingForRotation = vec3(inverseRotationMatrix * vec4(ambientLightDirection, 1.0));
+
+    fColor = vec4(vec3(vColor) * (dot(aldAccountingForRotation, vec3(vertex)) / 2.0 + 0.5),1); //normal calculated as approximation of icosahedron (a sphere)
 
     gl_Position =  projectionMatrix * modelViewMatrix * vertex;
 }
@@ -125,17 +127,70 @@ void main()
 }
 </script>
 
+<script id="projectile-vert" type="x-shader/x-vertex">
+
+    attribute vec4 vertex;
+    attribute vec3 normal;
+    
+    varying vec4 fColor;
+    
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+
+    uniform mat4 rotationMatrix;
+    uniform vec3 ambientLightDirection;
+    
+    void main()
+    {
+        vec4 normal4 = vec4(normal.x, normal.y, normal.z, 1);
+        vec4 worldNormal4 = rotationMatrix * normal4;
+        vec3 worldNormal = vec3(worldNormal4.x, worldNormal4.y, worldNormal4.z);
+        float dotProduct = dot(worldNormal,ambientLightDirection) / 2.0 + 0.5;
+
+        fColor = vec4(dotProduct,0,0,1);
+    
+        gl_Position =  projectionMatrix * modelViewMatrix * vertex;
+    }
+</script>
+
+<script id="projectile-frag" type="x-shader/x-fragment">
+
+    precision mediump float;
+
+varying  vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+
 <script type="text/javascript" src="Tools/initShaders.js"></script>
 <script type="text/javascript" src="Tools/MV.js"></script>
 <script type="text/javascript" src="Tools/webgl-utils.js"></script>
+<script type="text/javascript" src="Tools/myMV.js"></script>
 
-<script type="text/javascript" src="main.js"></script>
-<script type="text/javascript" src="camera.js"></script>
-<script type="text/javascript" src="Objects/Meteorite.js"></script>
-<script type="text/javascript" src="Objects/Sun.js"></script>
-<script type="text/javascript" src="Objects/Objects.js"></script>
+<script type="text/javascript" src="Objects/2Dmodels.js"></script>
+<script type="text/javascript" src="Objects/3Dmodels.js"></script>
 <script type="text/javascript" src="Objects/HudArrow.js"></script>
+<script type="text/javascript" src="Objects/Meteorite.js"></script>
+<script type="text/javascript" src="Objects/Projectile.js"></script>
+<script type="text/javascript" src="Objects/Sun.js"></script>
+<script type="text/javascript" src="Objects/Spacestation.js"></script>
+<script type="text/javascript" src="Objects/CollisionModels.js"></script>
+
+<script type="text/javascript" src="levels.js"></script>
+<script type="text/javascript" src="camera.js"></script>
 <script type="text/javascript" src="IO.js"></script>
+<script type="text/javascript" src="player.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+
+
+
+
+
 
 
 <body>

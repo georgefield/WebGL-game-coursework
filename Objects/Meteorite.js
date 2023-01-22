@@ -1,32 +1,33 @@
-function float32Concat(first, second)
-{
-    result = new Float32Array(first.length + second.length);
-
-    result.set(first);
-    result.set(second, first.length);
-
-    return result;
-}
-
-
-
 class Meteorite{
-    constructor(){
+    constructor(pos, spacestation, speed, scaleAmt){
         this.model = new Icosahedron();
+        this.scaleStart = scaleAmt;
 
-        this.scale = 1.0;
-        this.pos = vec3(0,0,0);
-        this.vel = vec3(0,0,0);
-        this.colour = vec4(0.4,0.35,0.3,1.0);
-        this.ambientLightDirection = vec3(0.0,1.0,0.0);
+        //model view matrix vars
+        this.scale = vec3(scaleAmt,scaleAmt,scaleAmt);
+        this.pos = pos;
+        this.rotation = vec3(Math.random() * 360,Math.random() * 180,Math.random() * 360);
 
-        this.model.init();
+        this.collisionRadius = 1.6180339887 * scaleAmt; //phi  *scale
+        this.collisionModel = new Sphere(this.collisionRadius, this.pos);
+
+        //auxiliary uniform vars
+        this.colour = vec4(0.4,0.35,0.3,1);
+
+        //other properties
+        if (spacestation != undefined){
+            let towardsSSvector = normalize(myMV.differenceVector(this.pos, spacestation.pos));
+            this.vel = scale(speed, towardsSSvector);
+        }
+        else{
+            this.vel = vec3(0,0,0);
+        }
+
+        this.erase = false;
+        this.disappearTime = 1; //in seconds, once destroyed
+        this.timeDestroyed = undefined;
 
         this.previousTime = Date.now(); //used to calculate time between frames
-
-        this.colourUniformLoc = gl.getUniformLocation(meteoriteProgram, "vColor");
-        this.ambientLightDirectionLoc = gl.getUniformLocation(meteoriteProgram, "ambientLightDirection");
-
     }
 
     frameDone(){ //call every frame
@@ -37,39 +38,36 @@ class Meteorite{
         this.pos[1] += this.vel[1] * elapsed;
         this.pos[2] += this.vel[2] * elapsed;
         this.previousTime = Date.now();
-    }
 
-    //setters
-    setPos(pos){
-        this.pos = new vec3(pos[0], pos[1], pos[2]);
-    }
+        if (this.timeDestroyed != undefined){
+            let timeSinceDestroyed = (Date.now() - this.timeDestroyed) * 0.001;
+            //make smaller linearly
+            let scaleAmt = this.scaleStart * ((this.disappearTime - timeSinceDestroyed) / this.disappearTime);
+            this.scale = vec3(scaleAmt, scaleAmt, scaleAmt);
+            this.collisionRadius = 1.6180339887 * scaleAmt; //phi/2  *scale
 
-    setVel(vel){
-        this.vel = new vec3(vel[0], vel[1], vel[2]);
-    }
+            if (scaleAmt < 0){
+                this.scale = vec3(0,0,0);
+                this.erase = true;
+            }
+        }
 
-    setScale(scale){
-        this.scale = scale;
-    }
-
-    setAmbientLightDirection(vec){
-        this.ambientLightDirection = new vec3(vec);
-        normalize(this.ambientLightDirection);
-    }
-
-    //getters
-    getModelViewMatrix(){
-
-        return mult(
-            translate(this.pos[0], this.pos[1], this.pos[2]), 
-            scalem(this.scale, this.scale, this.scale)
-        );
+        //update collision model
+        this.collisionModel.update(this.collisionRadius, this.pos);
     }
 
     draw(){
-        gl.uniform4fv(this.colourUniformLoc, this.colour);
-        gl.uniform3fv(this.ambientLightDirectionLoc, this.ambientLightDirection);
+        //auxiliary uniforms
+        let colourUniformLoc = gl.getUniformLocation(meteoriteProgram, "vColor");
+        let ambientLightDirectionLoc = gl.getUniformLocation(meteoriteProgram, "ambientLightDirection");
+        let invRotationMatrixLoc = gl.getUniformLocation(meteoriteProgram, "inverseRotationMatrix");
+        
+        let inverseRotationMatrix = inverse(myMV.getRotationMatrix(this.rotation));
 
-        this.model.draw(meteoriteProgram);
+        gl.uniform4fv(colourUniformLoc, this.colour);
+        gl.uniform3fv(ambientLightDirectionLoc, _camera.ambientLightDirection);
+        gl.uniformMatrix4fv(invRotationMatrixLoc, false, flatten(inverseRotationMatrix));
+
+        this.model.draw(meteoriteProgram, _camera.getPerspectiveMatrix(), myMV.getModelViewMatrix(this.scale, this.pos, this.rotation));
     }
 }
