@@ -38,6 +38,14 @@ myMV.getModelViewMatrix = function(scale, pos, rotation){
     );
 }
 
+myMV.getModelViewMatrixRotateFirst= function(scale, pos, rotation){
+    return mult(mult(
+        translate(pos[0],pos[1],pos[2]),
+        scalem(scale[0],scale[1],scale[2])),
+        myMV.getRotationMatrix(rotation),
+    );
+}
+
 myMV.differenceVector = function(v1, v2){
     return add(v2, negate(v1));
 }

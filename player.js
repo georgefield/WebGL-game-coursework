@@ -61,3 +61,18 @@ player.reset = function(){
     _camera.pos = vec3(0,0,0);
     _camera.vel = vec3(0,0,0);
 }
+
+player.win = function(){
+    text.showText(text.win);
+    //wait for 2 second then go to menu
+    if (_gameState != "win"){
+        _gameState = "win";
+        setTimeout(function(){
+            text.hideAll();
+            _levelCounter = 0; //reset levels
+
+            _gameState = "menu";
+        },
+        2500);
+    }
+}

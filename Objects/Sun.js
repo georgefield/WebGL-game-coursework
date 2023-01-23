@@ -5,9 +5,9 @@ class Sun{
 
         //model view vars
         this.scale = vec3(50,50,50);
-        this.pos = vec3(200,375,0);
-        this.rotation1 = vec3(0);
-        this.rotation2 = vec3(0);
+        this.pos = vec3(0,0,0);
+        this.rotation1 = vec3(0,0,0);
+        this.rotation2 = vec3(0,0,0);
 
         //other properties
         this.spin1 = vec3(2,5,11);

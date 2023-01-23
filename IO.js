@@ -18,7 +18,11 @@ class Mouse {
         document.addEventListener("click", this.handleMouseClick.bind(this))
     }
   
-    handleMouseMove(event) { //need to change so average over 10 frames as so fast that change is 0 
+    handleMouseMove(event) { //need to change so average over 10 frames as so fast that change is 0
+        //only do stuff when locked
+        if (document.pointerLockElement != canvas) {
+            return;
+        }
         this.currentX += event.movementX;
         this.currentY += event.movementY;
 
@@ -37,6 +41,10 @@ class Mouse {
     }
   
     handleMouseClick(){
+        //only do stuff when locked
+        if (document.pointerLockElement != canvas) {
+            return;
+        }
         this.clicked = true;
     }
 
@@ -51,6 +59,10 @@ class Mouse {
 
     getMousePos(){
         return {x: this.currentX, y:this.currentY};
+    }
+
+    getMousePosVecFromTL(){
+        return vec2(this.currentX + (canvas.width * 0.5), this.currentY + (canvas.height * 0.5));
     }
 }
   
@@ -97,12 +109,20 @@ class Keyboard{
     }
 
     handleKeyDown(event){
+        //only do stuff when locked
+        if (document.pointerLockElement != canvas) {
+            return;
+        }
         if (this.keyMap.get(event.key) == DOWN){ 
             return;
         }
         this.keyMap.set(event.key, JUST_PRESSED);
     }
     handleKeyUp(event){
+        //only do stuff when locked
+        if (document.pointerLockElement != canvas) {
+            return;
+        }
         this.keyMap.set(event.key, JUST_RELEASED);
     }
 }

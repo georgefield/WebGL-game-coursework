@@ -204,3 +204,37 @@ class Cube{
         gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
     }
 }
+
+class SpacestationModel{
+    constructor(){
+        this.points = undefined;
+        this.numVertices = undefined;
+        
+        this.init();
+    }
+
+    init(){
+        const objLoader = new THREE.OBJLoader();
+        objLoader.load('Objects/spacestation.obj', function (object) {
+            // Extract the first mesh from the object
+            const mesh = object.children[0];
+
+            // Get the position attribute of the mesh's geometry
+            const positionAttribute = mesh.geometry.attributes.position;
+
+            // Extract the vertex data as a typed array
+            this.points = positionAttribute.array;
+            this.numVertices = this.points.length / 4;
+        });
+
+    }
+
+    draw(program, perspectiveMatrix, modelViewMatrix, enableNormalAttrib = false){
+        tools3D.setUniformProjectionMatrix(program, perspectiveMatrix, "projectionMatrix");
+        tools3D.setUniformModelViewMatrix(program, modelViewMatrix, "modelViewMatrix");
+
+        tools3D.enableVertexAttrib(program,this.vboID);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
+    }
+}

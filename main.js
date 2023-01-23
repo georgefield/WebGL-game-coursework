@@ -14,14 +14,22 @@ var _keyboard;
 var _background;
 var _sun;
 var _hudArrow;
+var _menuMeteorite;
 
 var _level;
 var _levels;
 var _levelCounter;
+var _gameState = "menu";
 
-var _projectileArray = [];
+var _sunFlareAmount = 0;
 
 window.onload = function run(){
+    var spaceStationGLB = document.getElementById("spacestationGLB");
+    if ( !spaceStationGLB ) { 
+        alert( "Unable to load vertex shader " );
+        return -1;
+    }
+    console.log(spaceStationGLB.text);
     initSystems();
     gameLoop();
 }
@@ -57,9 +65,11 @@ function initSystems(){
     _keyboard = new Keyboard();
 
     _sun = new Sun();
-    _camera.setAmbientLightDirection(_sun.pos);
     _hudArrow = new HudArrow();
+    _hudPointer = new HudPointer();
     _background = new Quad2D(vec4(-1,-1,2,2));
+    _menuMeteorite = new Meteorite(vec3(9, -14, -25), undefined, 0, 5);
+    _menuMeteorite.spin = vec3(2,-1.2,3);
 
     //lock cursor to canvas on click
     canvas.onclick = function() {
@@ -67,58 +77,93 @@ function initSystems(){
     }
 
     _levelCounter = 0;
-    _level = level1;
-    _levels = [level1, level2];
-    _levels[0].start();
+    _levels = [level1, level2, level3];
+
+    text.init();
 }
 
 function gameLoop(){
-    let gameState = getGameState();
-    if (gameState == "playing"){
+    console.log(_gameState);
+    if (_gameState == "playing"){
         processInput();
         collisions();
-        render();
+        gameRender();
+        checkForWinLose();
+    }
+    else if (_gameState == "menu"){
+        menu();
+    }
+    else if (_gameState == "wait"){
+        _gameState = "do nothing"; //stop 1 billion set timeout functions being called
+        setTimeout(function(){
+            _level.start();
+            text.hideAll();
+            player.reset();
+            player.frameDone();
 
-        frameDone();
+            _gameState = "playing";
+        },
+        1000);
     }
-    else{
-        player.reset();
-        if (gameState == "next level"){
-            _levelCounter += 1;
-            if (_levelCounter >= 2){ //only 2 levels
-                win();
-            }
+    else if (_gameState == "next level"){
+        //increment level
+        _levelCounter += 1;
+        //test for if win
+        if (_levelCounter >= _levels.length){
+            player.win();
+        }
+        else{
+            text.showText(text.nextLevel);
             _level = _levels[_levelCounter];
-            _level.start();
+            _gameState = "wait";
         }
-        else if(gameState == "space station destroyed"){
-            _level.start();
-        }
-        else if (gameState == "player dead"){
-            //pause for 2 seconds
-            _level.start();
-        }
-        
     }
-    
+    else if (_gameState != "do nothing"){
+        if (_gameState == "space station destroyed"){
+            text.showText(text.spacestationDestroyed)
+        }
+        else if (_gameState == "player dead"){
+            text.showText(text.crashed);
+        }
+        _gameState = "wait";
+    }
+
+    frameDone();
     requestAnimationFrame(gameLoop);
 }
 
 function frameDone(){
+
+    if (_gameState == "playing"){
+        _level.frameDone();
+    }
+
+    _menuMeteorite.frameDone();
+    _hudPointer.frameDone();
+    player.frameDone();
     _camera.frameDone();
     _mouse.frameDone();
     _keyboard.frameDone();
     _sun.frameDone();
-    _level.frameDone();
-    player.frameDone();
 }
 
-function render(){
+function gameRender(){
     renderBackground();
     renderSun();
-    renderHud();
+    renderHudArrow();
     renderProjectiles();
     renderMeteorites();
+}
+
+function menuRender(){
+    renderBackground();
+    renderSun();
+    renderHudPointer();
+
+    //1 meteorite
+    gl.useProgram(meteoriteProgram);
+
+    _menuMeteorite.draw();
 }
 
 function renderMeteorites() {
@@ -144,21 +189,32 @@ function renderBackground(){
 
     let sunLookDirection = _sun.pos;
     let cameraLookDirection = _camera.getLookDirectionVector();
-    let vec3CameraLookDirection = vec3(cameraLookDirection[0],cameraLookDirection[1],cameraLookDirection[2]);
-
-    let angleLoc = gl.getUniformLocation(backgroundProgram, "angle");
+    //flip z for some reason, have to do it everywhere idk why
+    let vec3CameraLookDirection = vec3(cameraLookDirection[0],cameraLookDirection[1],-cameraLookDirection[2]);
 
     let dotProduct = dot(sunLookDirection, vec3CameraLookDirection);
-    let angle = Math.acos(dotProduct / (length(sunLookDirection) * length(vec3CameraLookDirection)));  
+    let angle = Math.acos(dotProduct / (length(sunLookDirection) * length(vec3CameraLookDirection)));
 
-    gl.uniform1f(angleLoc, angle);
+    let normalisedAngle1Minus = 1.0 - (Math.abs(angle) / 3.1415);
+    _sunFlareAmount = normalisedAngle1Minus * normalisedAngle1Minus * normalisedAngle1Minus;
+
+    let sunFlareAmountLoc = gl.getUniformLocation(backgroundProgram, "sunFlareAmount");
+    
+    gl.uniform1f(sunFlareAmountLoc, _sunFlareAmount);
+
     _background.draw(backgroundProgram);
 }
 
-function renderHud(){
+function renderHudArrow(){
     gl.useProgram(hudProgram);
 
-    _hudArrow.draw(hudProgram);
+    _hudArrow.draw();
+}
+
+function renderHudPointer(){
+    gl.useProgram(hudProgram);
+
+    _hudPointer.draw();
 }
 
 function renderProjectiles(){
@@ -213,21 +269,46 @@ function collisions(){
 
     //player hits space station
     if (isColliding(_level.spaceStation.object.collisionModel, player.collisionModel)){
-        console.log("dead");
         player.isDead = true;
     }
 }
 
-function getGameState(){
+function checkForWinLose(){
     if (_level.spaceStation.object.erase == true){
-        return "space station destroyed";
+        _gameState = "space station destroyed";
     }
     if (player.isDead == true){
-        return "player dead";
+        _gameState = "player dead";
     }
     if (_level.meteoriteArray.length == 0){
-        return "next level";
+        _gameState = "next level";
     }
+}
 
-    return "playing";
+function menu(){
+
+    text.showText(text.start);
+    text.showText(text.objective);
+
+    _camera.setAzEl(vec2(0,0));
+    _camera.setPos(vec3(0,0,0));
+    _sun.pos = vec3(250,250,-300);
+    _camera.setAmbientLightDirection(_sun.pos);
+
+    menuRender();
+    if (_mouse.clicked){
+        _mouse.clicked = false;
+        console.log(_mouse.getMousePosVecFromTL());
+        if (myMV.distance(_mouse.getMousePosVecFromTL(), vec2(160,130)) < 70){ //click near enough to start html
+            _mouse.currentX = 0;
+            _mouse.currentY = 0;
+
+            _level = _levels[_levelCounter];
+            _level.start();
+    
+            text.hideAll();
+
+            _gameState = "playing";
+        }
+    }
 }

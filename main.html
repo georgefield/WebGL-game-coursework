@@ -6,6 +6,8 @@
 attribute vec4 vertex;
 
 varying vec4 fColor;
+varying vec3 fvPosition;
+varying float fSunFlareAmount;
 
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
@@ -13,6 +15,7 @@ uniform mat4 inverseRotationMatrix;
 
 uniform vec4 vColor;
 uniform vec3 ambientLightDirection;
+uniform float sunFlareAmount; //need to calculate background color for fog
 
 void main()
 {
@@ -20,21 +23,33 @@ void main()
 
     fColor = vec4(vec3(vColor) * (dot(aldAccountingForRotation, vec3(vertex)) / 2.0 + 0.5),1); //normal calculated as approximation of icosahedron (a sphere)
 
-    gl_Position =  projectionMatrix * modelViewMatrix * vertex;
+    vec4 vPos = projectionMatrix * modelViewMatrix * vertex;
+    gl_Position = vPos;
+
+    fvPosition = vPos.xyz;
+    fSunFlareAmount = sunFlareAmount;
 }
 
 </script>
 
 <script id="meteorite-frag" type="x-shader/x-fragment">
 
-    precision mediump float;
+precision mediump float;
 
-varying  vec4 fColor;
+varying vec3 fvPosition;
+varying vec4 fColor;
+varying float fSunFlareAmount;
 
-void main()
-{
-    gl_FragColor = fColor;
+void main() {
+    vec4 uFogColor = vec4(fSunFlareAmount * 0.7,0.05 + fSunFlareAmount * 0.6,0.12 + fSunFlareAmount * 0.4,1); //same as background
+    float uFogStart = 100.0; //the distance from the camera where the fog starts
+    float uFogEnd = 800.0;   //the distance from the camera where the fog is completely covering the scene = far plane
+
+    float fogFactor = (length(fvPosition) - uFogStart) / (uFogEnd - uFogStart);
+    fogFactor = clamp(fogFactor, 0.0, 1.0); // clamp the fogFactor between 0 and 1
+    gl_FragColor = vec4(mix(fColor, uFogColor, fogFactor));
 }
+    
 </script>
 
 <script id="background-vert" type="x-shader/x-fragment">
@@ -42,16 +57,13 @@ attribute vec2 vertex;
 
 varying vec4 fColor;
 
-uniform float angle;
+uniform float sunFlareAmount;
 
 void main()
 {
-    
-    float normalisedAngle = 1.0 - (abs(angle) / 3.1415);
-    float tensionNormAngle = normalisedAngle * normalisedAngle * normalisedAngle;
 
     gl_Position = vec4(vertex, 0.99999, 1);
-    fColor = vec4(tensionNormAngle * 0.7,0.05 + tensionNormAngle * 0.6,0.12 + tensionNormAngle * 0.4,1);
+    fColor = vec4(sunFlareAmount * 0.7,0.05 + sunFlareAmount * 0.6,0.12 + sunFlareAmount * 0.4,1);
 }
 </script>
 
@@ -165,6 +177,35 @@ void main()
 }
 </script>
 
+<script id="spacestation-vert" type="x-shader/x-vertex">
+
+    attribute vec4 vertex;
+    
+    varying vec4 fColor;
+    
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelViewMatrix;
+    
+    void main()
+    {
+
+        fColor = vec4(1,1,1,1);
+    
+        gl_Position =  projectionMatrix * modelViewMatrix * vertex;
+    }
+</script>
+
+<script id="spacestation-frag" type="x-shader/x-fragment">
+
+    precision mediump float;
+
+varying  vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
 
 <script type="text/javascript" src="Tools/initShaders.js"></script>
 <script type="text/javascript" src="Tools/MV.js"></script>
@@ -173,7 +214,7 @@ void main()
 
 <script type="text/javascript" src="Objects/2Dmodels.js"></script>
 <script type="text/javascript" src="Objects/3Dmodels.js"></script>
-<script type="text/javascript" src="Objects/HudArrow.js"></script>
+<script type="text/javascript" src="Objects/HudObjects.js"></script>
 <script type="text/javascript" src="Objects/Meteorite.js"></script>
 <script type="text/javascript" src="Objects/Projectile.js"></script>
 <script type="text/javascript" src="Objects/Sun.js"></script>
@@ -185,18 +226,105 @@ void main()
 <script type="text/javascript" src="IO.js"></script>
 <script type="text/javascript" src="player.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<script type="text/javascript" src="text.js"></script>
 
+<script id="spacestationGLB" type="x-shader/x-fragment">
+    dfasdgsafgf
 
-
-
-
+afgsafg
+asfg
+</script>
 
 
 
 <body>
-    <canvas id="gl-canvas" width="1024" height=" 768">
+    <canvas id="gl-canvas" width = "1280" height = "720">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
+    
+
+    <!-- main menu -->
+    <style>
+        .start{
+            position: absolute;
+            top: 100px;
+            left: 80px;
+            font-size: 60px;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            letter-spacing: 2px;
+            color: white;
+            border: 2px solid rgb(255,255,255);
+        }
+        .objective{
+            position: absolute;
+            top: 230px;
+            left: 80px;
+            font-size: 20px;
+            color: white;
+        }
+    </style>
+    <div class="start" id = "start">
+        START
+    </div>
+    <div class="objective" id = "objective">
+        Save the space station from meteorite impact by flying your spaceship and shooting the meteorites.<br><br>
+         •Use wsad to move<br>
+         •Use mouse movement to aim<br>
+         •Use left click to fire<br><br><br>
+        Click 'START' to begin...
+    </div>
+
+     <!-- messages to player -->
+    <style>
+        .messageBad{
+            position: absolute;
+            top: 360px;
+            left: 640px;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: white;
+            background: #770000;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            border: 10px solid rgb(255, 0, 0);
+            border-radius: 20px;
+        }
+        .messageGood{
+            position: absolute;
+            top: 360px;
+            left: 640px;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            color: white;
+            background: rgb(0, 119, 10);
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            border: 10px solid rgb(0, 255, 0);
+            border-radius: 20px;
+        }
+        .messageWin{
+            position: absolute;
+            top: 360px;
+            left: 640px;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            color: white;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            border: 10px solid rgb(255, 255, 255);
+            border-radius: 20px;
+        }
+    </style>
+    <div class = "messageBad" id = "crashed">
+        Crashed!
+    </div>
+    <div class = "messageBad" id = "spacestationDestroyed">
+        Spacestation Destroyed!
+    </div>
+    <div class = "messageGood" id = "nextLevel">
+        Next Level...
+    </div>
+    <div class = "messageWin" id = "win">
+        You Have Completed All Levels! <br> Well done!
+    </div>
+
 </body>
 
 </html>

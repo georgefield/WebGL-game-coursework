@@ -13,6 +13,7 @@ class Meteorite{
 
         //auxiliary uniform vars
         this.colour = vec4(0.4,0.35,0.3,1);
+        this.spin = vec3(Math.random() * 20,Math.random() * 20,Math.random() * 20);
 
         //other properties
         if (spacestation != undefined){
@@ -52,6 +53,9 @@ class Meteorite{
             }
         }
 
+        //update rotation by spin
+        this.rotation = add(this.rotation, scale(elapsed, this.spin));
+
         //update collision model
         this.collisionModel.update(this.collisionRadius, this.pos);
     }
@@ -61,12 +65,14 @@ class Meteorite{
         let colourUniformLoc = gl.getUniformLocation(meteoriteProgram, "vColor");
         let ambientLightDirectionLoc = gl.getUniformLocation(meteoriteProgram, "ambientLightDirection");
         let invRotationMatrixLoc = gl.getUniformLocation(meteoriteProgram, "inverseRotationMatrix");
+        let sunFlareAmountLoc = gl.getUniformLocation(meteoriteProgram, "sunFlareAmount");
         
         let inverseRotationMatrix = inverse(myMV.getRotationMatrix(this.rotation));
 
         gl.uniform4fv(colourUniformLoc, this.colour);
         gl.uniform3fv(ambientLightDirectionLoc, _camera.ambientLightDirection);
         gl.uniformMatrix4fv(invRotationMatrixLoc, false, flatten(inverseRotationMatrix));
+        gl.uniform1f(sunFlareAmountLoc, _sunFlareAmount);
 
         this.model.draw(meteoriteProgram, _camera.getPerspectiveMatrix(), myMV.getModelViewMatrix(this.scale, this.pos, this.rotation));
     }

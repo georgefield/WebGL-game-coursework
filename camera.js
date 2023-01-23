@@ -1,8 +1,8 @@
 class Camera{
     constructor(){
         this.pos = vec3(0,0,0);
-        this.vel = vec3(0);
-        this.acc = vec3(0);
+        this.vel = vec3(0,0,0);
+        this.acc = vec3(0,0,0);
 
         this.az = 0;
         this.el = 0;
@@ -73,8 +73,8 @@ class Camera{
     }
 
     setAzEl(AzEl){
-        this.az = AzEl.x;
-        this.el = AzEl.y;
+        this.az = AzEl[0];
+        this.el = AzEl[1];
     }
     addAzEl(mouseChange){
         this.az += mouseChange.x * this.mouseSensitivity;
@@ -112,7 +112,7 @@ class Camera{
     getPerspectiveMatrix(){
         //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...
         let ret = mult(mult(mult(
-        perspective(100.0, 1.0, 1.0, 500.0),
+        perspective(100.0, 1.0, 1.0, 800.0),
         rotateX(this.el)),
         rotateY(this.az)), 
         translate(this.pos[0], this.pos[1], this.pos[2]));
@@ -123,7 +123,7 @@ class Camera{
     //for sun
     getPerspectiveMatrixNoTranslate(){
         let ret = mult(mult(
-            perspective(100.0, 1.0, 1.0, 500.0),
+            perspective(100.0, 1.0, 1.0, 800.0),
             rotateX(this.el)),
             rotateY(this.az)
         );
