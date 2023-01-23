@@ -38,6 +38,7 @@ function renderBackground(){
 
     gl.useProgram(backgroundProgram);
 
+    //sun flare amount calculation
     let sunLookDirection = _sun.pos;
     let cameraLookDirection = _camera.getLookDirectionVector();
     //flip z for some reason, have to do it everywhere idk why
@@ -50,8 +51,11 @@ function renderBackground(){
     _sunFlareAmount = normalisedAngle1Minus * normalisedAngle1Minus * normalisedAngle1Minus;
 
     let sunFlareAmountLoc = gl.getUniformLocation(backgroundProgram, "sunFlareAmount");
-    
     gl.uniform1f(sunFlareAmountLoc, _sunFlareAmount);
+
+    //sun colour (to flare to faded version of)
+    let sunColorLoc = gl.getUniformLocation(backgroundProgram, "sunColor");
+    gl.uniform4fv(sunColorLoc, _sun.colour);
 
     _background.draw(backgroundProgram);
 }

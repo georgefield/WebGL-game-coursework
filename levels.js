@@ -47,7 +47,9 @@ var level1 = {
     start: function(){
         displayLevelNum();
         
-        _sun.pos = this.sunPosition; 
+        _sun.pos = this.sunPosition;
+        _sun.colour = vec4(0.95,1,0.7,1);
+ 
         _camera.setAmbientLightDirection(_sun.pos);
 
         this.meteoriteArray = [];
@@ -83,12 +85,14 @@ var level2 = {
     meteoriteArray: [],
     spaceStation: undefined,
     meteoriteSpeed: 15,
-    sunPosition: vec3(375,200,0),
+    sunPosition: vec3(375,200,-50),
 
     start: function(){
         displayLevelNum();
 
         _sun.pos = this.sunPosition; 
+        _sun.colour = vec4(0.9,0.95,1,1);
+
         _camera.setAmbientLightDirection(_sun.pos);
 
         this.meteoriteArray = [];
@@ -132,6 +136,8 @@ var level3 = {
         displayLevelNum();
 
         _sun.pos = this.sunPosition; 
+        _sun.colour = vec4(1,0.5,0.5,1);
+
         _camera.setAmbientLightDirection(_sun.pos);
 
         this.meteoriteArray = [];

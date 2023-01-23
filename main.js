@@ -238,7 +238,7 @@ function menu(){
     menuRender();
     if (_mouse.clicked){
         _mouse.clicked = false;
-        console.log(_mouse.getMousePosVecFromTL());
+
         if (myMV.distance(_mouse.getMousePosVecFromTL(), vec2(160,130)) < 70){ //click near enough to start html         
             text.hideAll();
 

@@ -75,12 +75,15 @@ attribute vec2 vertex;
 varying vec4 fColor;
 
 uniform float sunFlareAmount;
+uniform vec4 sunColor;
 
 void main()
 {
 
+    vec3 fadedSunColor = vec3(sunColor.r * 0.4, sunColor.g * 0.35, sunColor.b * 0.3);
+
     gl_Position = vec4(vertex, 0.99999, 1);
-    fColor = vec4(sunFlareAmount * 0.7,0.05 + sunFlareAmount * 0.6,0.12 + sunFlareAmount * 0.4,1);
+    fColor = vec4(sunFlareAmount * fadedSunColor.r,0.05 + sunFlareAmount * fadedSunColor.g,0.12 + sunFlareAmount * fadedSunColor.b,1);
 }
 </script>
 
@@ -105,10 +108,12 @@ varying vec4 fColor;
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
 
+uniform vec4 sunColor;
+
 
 void main()
 {
-    fColor = vec4(0.9,1,0.7,1); //normal calculated as approximation of icosahedron (a sphere)
+    fColor = sunColor;
 
     gl_Position =  projectionMatrix * modelViewMatrix * vertex;
 }
