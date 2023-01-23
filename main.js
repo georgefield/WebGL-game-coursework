@@ -16,6 +16,8 @@ var _keyboard;
 var _background;
 var _sun;
 var _hudArrow;
+var _hudPointer;
+var _hudCrosshair;
 var _menuMeteorite;
 
 var _level;
@@ -73,6 +75,7 @@ function initSystems(){
     _sun = new Sun();
     _hudArrow = new HudArrow();
     _hudPointer = new HudPointer();
+    _hudCrosshair = new HudCrosshair();
     _background = new Quad2D(vec4(-1,-1,2,2));
     _menuMeteorite = new Meteorite(vec3(9, -14, -25), undefined, 0, 5);
     _menuMeteorite.spin = vec3(2,-1.2,3);

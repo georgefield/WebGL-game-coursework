@@ -3,7 +3,7 @@ function gameRender(){
     //render functions use correct program and then draw object
     renderBackground();
     renderSun();
-    renderHudArrow();
+    renderHud();
     renderProjectiles();
     renderMeteorites();
     renderSpacestation();
@@ -12,7 +12,7 @@ function gameRender(){
 function menuRender(){
     renderBackground();
     renderSun();
-    renderHudPointer();
+    renderPointer();
 
     //1 meteorite for aesthetics
     gl.useProgram(meteoriteProgram);
@@ -60,13 +60,14 @@ function renderBackground(){ //not handled by its own class so much bigger rende
     _background.draw(backgroundProgram);
 }
 
-function renderHudArrow(){
+function renderHud(){
     gl.useProgram(hudProgram);
 
     _hudArrow.draw();
+    _hudCrosshair.draw();
 }
 
-function renderHudPointer(){
+function renderPointer(){
     gl.useProgram(hudProgram);
 
     _hudPointer.draw();
