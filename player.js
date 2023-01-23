@@ -29,16 +29,20 @@ player.getAcceleration = function(){
 
 player.collisionModel = new Point(vec3(0,0,0));
 player.projectiles = [];
+player.projectilePositions = [];
 player.isDead = false;
+player.lastTimeFired = 0;
 
 player.fire = function(){
+    player.lastTimeFired = Date.now();
+
     let projectile = new Projectile();
 
     let lookVector = vec3(_camera.getLookDirectionVector());
     let posOffset = scale(3,lookVector);
     posOffset[2] = -posOffset[2];
 
-    projectile.vel = scale(100,lookVector);
+    projectile.vel = scale(150,lookVector);
     projectile.pos = add(new vec3(-_camera.pos[0],-_camera.pos[1],-_camera.pos[2]), posOffset);
     projectile.vel[2] = -projectile.vel[2]; //z flips ???
 
@@ -54,6 +58,9 @@ player.frameDone = function(){
 
     removeErasedObjectsFromArray(player.projectiles);
     player.collisionModel.update(negate(_camera.pos));
+
+    //update projectile positions array
+    player.projectilePositions = player.getProjectilePositionsArray();
 }
 
 player.reset = function(){
@@ -65,8 +72,8 @@ player.reset = function(){
 player.win = function(){
     text.showText(text.win);
     //wait for 2 second then go to menu
-    if (_gameState != "win"){
-        _gameState = "win";
+    if (_gameState != "do nothing"){
+        _gameState = "do nothing";
         setTimeout(function(){
             text.hideAll();
             _levelCounter = 0; //reset levels
@@ -75,4 +82,12 @@ player.win = function(){
         },
         2500);
     }
+}
+
+player.getProjectilePositionsArray = function(){
+    let ret = [];
+    for (let i = 0; i < this.projectiles.length; i++){
+        ret.push(this.projectiles[i].pos);
+    }
+    return ret;
 }

@@ -9,6 +9,8 @@ class Mouse {
         this.currentX = 0;
         this.currentY = 0;
 
+        this.timeClicked = Date.now();
+        this.timeBetweenClicks = 0;
         this.clicked = false;
 
         this.frameStart = true;
@@ -45,6 +47,8 @@ class Mouse {
         if (document.pointerLockElement != canvas) {
             return;
         }
+        this.timeBetweenClicks = (Date.now() - this.timeClicked) * 0.001;
+        this.timeClicked = Date.now();
         this.clicked = true;
     }
 
@@ -63,6 +67,10 @@ class Mouse {
 
     getMousePosVecFromTL(){
         return vec2(this.currentX + (canvas.width * 0.5), this.currentY + (canvas.height * 0.5));
+    }
+
+    getTimeBetweenClicks(){
+        return this.timeBetweenClicks;
     }
 }
   

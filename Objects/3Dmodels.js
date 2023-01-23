@@ -25,7 +25,7 @@ tools3D.enableNormalAttrib = function(program,nboID){
 }
 
 class ModelCreatorHelper{
-    constructor(vertices){
+    constructor(vertices = undefined){
         this.points = [];
         this.normals = [];
         this.verts = vertices;
@@ -58,6 +58,23 @@ class ModelCreatorHelper{
         this.points.push(vertices[1]);
         this.points.push(vertices[2]);
     }
+
+    loadSTL(STL){
+        let splitByFace = STL.split("normal ");
+
+        for (let i = 1; i < splitByFace.length; i++){
+            let splitByLine = splitByFace[i].split('\n');
+            let normal = splitByLine[0].split(" ");
+
+            for (let j = 0; j < 3; j++){ 
+                this.normals.push(vec3(parseFloat(normal[0]),parseFloat(normal[1]),parseFloat(normal[2])));
+            }
+            for (let j = 0; j < 3; j++){
+                let vertex = splitByLine[j+1].split(" ");
+                this.points.push(vec4(parseFloat(vertex[0]), parseFloat(vertex[1]), parseFloat(vertex[2]), 1.0));
+            }
+        }
+    }
 }
 
 
@@ -66,8 +83,10 @@ class Icosahedron{
         this.numVertices = 60; //20 faces, 3 points for each face
 
         this.points = [];
+        this.normals = [];
 
         this.vboID = 0;
+        this.nboID = 0;
 
         this.init();
     }
@@ -94,44 +113,55 @@ class Icosahedron{
             vec4(0,phi,-1)
         ]
 
-        this.points.push(myMV.triangle(0,1,4,vertices));
-        this.points.push(myMV.triangle(0,1,6,vertices));
+        let helper = new ModelCreatorHelper(vertices);
+        helper.addTriangleAndNormals(0,1,4);
+        helper.addTriangleAndNormals(0,1,6);
 
-        this.points.push(myMV.triangle(2,3,5,vertices));
-        this.points.push(myMV.triangle(2,3,7,vertices));
+        helper.addTriangleAndNormals(2,3,5);
+        helper.addTriangleAndNormals(2,3,7);
 
-        this.points.push(myMV.triangle(4,5,9,vertices));
-        this.points.push(myMV.triangle(4,5,11,vertices));
+        helper.addTriangleAndNormals(4,5,9);
+        helper.addTriangleAndNormals(4,5,11);
 
-        this.points.push(myMV.triangle(6,7,8,vertices));
-        this.points.push(myMV.triangle(6,7,10,vertices));
+        helper.addTriangleAndNormals(6,7,8);
+        helper.addTriangleAndNormals(6,7,10);
 
-        this.points.push(myMV.triangle(8,9,1,vertices));
-        this.points.push(myMV.triangle(8,9,3,vertices));
+        helper.addTriangleAndNormals(8,9,1);
+        helper.addTriangleAndNormals(8,9,3);
 
-        this.points.push(myMV.triangle(10,11,0,vertices));
-        this.points.push(myMV.triangle(10,11,2,vertices));
+        helper.addTriangleAndNormals(10,11,0);
+        helper.addTriangleAndNormals(10,11,2);
 
-        this.points.push(myMV.triangle(0,4,11,vertices));
-        this.points.push(myMV.triangle(0,6,10,vertices));
-        this.points.push(myMV.triangle(1,4,9,vertices));
-        this.points.push(myMV.triangle(1,6,8,vertices));
+        helper.addTriangleAndNormals(0,4,11);
+        helper.addTriangleAndNormals(0,6,10);
+        helper.addTriangleAndNormals(1,4,9);
+        helper.addTriangleAndNormals(1,6,8);
 
-        this.points.push(myMV.triangle(2,5,11,vertices));
-        this.points.push(myMV.triangle(2,7,10,vertices));
-        this.points.push(myMV.triangle(3,5,9,vertices));
-        this.points.push(myMV.triangle(3,7,8,vertices));
+        helper.addTriangleAndNormals(2,5,11);
+        helper.addTriangleAndNormals(2,7,10);
+        helper.addTriangleAndNormals(3,5,9);
+        helper.addTriangleAndNormals(3,7,8);
+        this.points = helper.points;
+        this.normals = helper.normals;
 
         this.vboID = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vboID);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(this.points), gl.STATIC_DRAW);
+
+        this.nboID = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.nboID);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(this.normals), gl.STATIC_DRAW);
     }
 
     draw(program, perspectiveMatrix,modelViewMatrix,enableNormalAttrib = false){
         tools3D.setUniformProjectionMatrix(program, perspectiveMatrix, "projectionMatrix");
         tools3D.setUniformModelViewMatrix(program, modelViewMatrix, "modelViewMatrix");
 
+        if (enableNormalAttrib){
+            tools3D.enableNormalAttrib(program,this.nboID);
+        }
         tools3D.enableVertexAttrib(program,this.vboID);
+        
         gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
     }
 }
@@ -208,33 +238,38 @@ class Cube{
 class SpacestationModel{
     constructor(){
         this.points = undefined;
+        this.normals = undefined;
         this.numVertices = undefined;
         
         this.init();
     }
 
     init(){
-        const objLoader = new THREE.OBJLoader();
-        objLoader.load('Objects/spacestation.obj', function (object) {
-            // Extract the first mesh from the object
-            const mesh = object.children[0];
+        let helper = new ModelCreatorHelper();
+        helper.loadSTL(_spacestationSTL, this.points, this.normals);
 
-            // Get the position attribute of the mesh's geometry
-            const positionAttribute = mesh.geometry.attributes.position;
+        this.points = helper.points;
+        this.normals = helper.normals;
 
-            // Extract the vertex data as a typed array
-            this.points = positionAttribute.array;
-            this.numVertices = this.points.length / 4;
-        });
+        this.numVertices = helper.points.length;
 
+        this.vboID = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vboID);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(this.points), gl.STATIC_DRAW);
+
+        this.nboID = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.nboID);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(this.normals), gl.STATIC_DRAW);
     }
-
+    
     draw(program, perspectiveMatrix, modelViewMatrix, enableNormalAttrib = false){
         tools3D.setUniformProjectionMatrix(program, perspectiveMatrix, "projectionMatrix");
         tools3D.setUniformModelViewMatrix(program, modelViewMatrix, "modelViewMatrix");
 
         tools3D.enableVertexAttrib(program,this.vboID);
-
+        if (enableNormalAttrib){
+            tools3D.enableNormalAttrib(program,this.nboID);
+        }
         gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
     }
 }

@@ -23,6 +23,20 @@ function scaleMeteoriteDistance(meteoriteArray){
     }
 }
 
+//display level num and prompt of how to return to menu
+function displayLevelNum(){
+    text.showText(text.levelNum);
+    text.setText(text.levelNum, "Level " +  + (_levelCounter + 1));
+    setTimeout(function(){
+        text.setText(text.levelNum, "Press 'm' to return to menu");
+        setTimeout(function(){
+            text.hideAll();
+        },
+        1500)
+    },
+    1500)
+}
+
 var level1 = {
 
     meteoriteArray: [],
@@ -31,6 +45,8 @@ var level1 = {
     sunPosition: vec3(-300,200,-300),
 
     start: function(){
+        displayLevelNum();
+        
         _sun.pos = this.sunPosition; 
         _camera.setAmbientLightDirection(_sun.pos);
 
@@ -42,7 +58,7 @@ var level1 = {
         this.meteoriteArray.push(new Meteorite(vec3(-250, -30, 140), this.spaceStation, this.meteoriteSpeed, 7));
         this.meteoriteArray.push(new Meteorite(vec3(-130, -260, -90), this.spaceStation, this.meteoriteSpeed, 8));
         this.meteoriteArray.push(new Meteorite(vec3(190, 50, 220), this.spaceStation, this.meteoriteSpeed, 8));
-        this.meteoriteArray.push(new Meteorite(vec3(40, 100, -130), this.spaceStation, this.meteoriteSpeed, 9));
+        this.meteoriteArray.push(new Meteorite(vec3(50, 120, -150), this.spaceStation, this.meteoriteSpeed, 9));
 
         scaleMeteoriteDistance(this.meteoriteArray);
     },
@@ -56,7 +72,7 @@ var level1 = {
             this.meteoriteArray[i].frameDone();
         }
         //update spacestation
-        this.spaceStation.object.frameDone();
+        this.spaceStation.frameDone();
     }
 }
 
@@ -70,6 +86,8 @@ var level2 = {
     sunPosition: vec3(375,200,0),
 
     start: function(){
+        displayLevelNum();
+
         _sun.pos = this.sunPosition; 
         _camera.setAmbientLightDirection(_sun.pos);
 
@@ -77,13 +95,13 @@ var level2 = {
         this.spaceStation = new Spacestation();
 
         //level 2
-        this.meteoriteArray.push(new Meteorite(vec3(100, -400, -60), this.spaceStation, this.meteoriteSpeed, 6));
-        this.meteoriteArray.push(new Meteorite(vec3(-250, -30, 140), this.spaceStation, this.meteoriteSpeed, 6));
+        this.meteoriteArray.push(new Meteorite(vec3(100, -100, -60), this.spaceStation, this.meteoriteSpeed, 6));
+        this.meteoriteArray.push(new Meteorite(vec3(-150, -40, 90), this.spaceStation, this.meteoriteSpeed, 6));
         this.meteoriteArray.push(new Meteorite(vec3(-130, -260, -90), this.spaceStation, this.meteoriteSpeed, 7));
         this.meteoriteArray.push(new Meteorite(vec3(190, 50, 220), this.spaceStation, this.meteoriteSpeed, 7));
-        this.meteoriteArray.push(new Meteorite(vec3(140, 190, -230), this.spaceStation, this.meteoriteSpeed, 8));
+        this.meteoriteArray.push(new Meteorite(vec3(140, 290, -230), this.spaceStation, this.meteoriteSpeed, 8));
         this.meteoriteArray.push(new Meteorite(vec3(-380, 20, -20), this.spaceStation, this.meteoriteSpeed, 8));
-        this.meteoriteArray.push(new Meteorite(vec3(0, 250, 280), this.spaceStation, this.meteoriteSpeed, 9));
+        this.meteoriteArray.push(new Meteorite(vec3(0, 150, 180), this.spaceStation, this.meteoriteSpeed, 9));
 
         scaleMeteoriteDistance(this.meteoriteArray);
     },
@@ -97,7 +115,7 @@ var level2 = {
             this.meteoriteArray[i].frameDone();
         }
         //update spacestation
-        this.spaceStation.object.frameDone();
+        this.spaceStation.frameDone();
     }
 }
 
@@ -108,9 +126,11 @@ var level3 = {
     meteoriteArray: [],
     spaceStation: undefined,
     meteoriteSpeed: 18,
-    sunPosition: vec3(0,-450,20),
+    sunPosition: vec3(30,0,-450),
 
     start: function(){
+        displayLevelNum();
+
         _sun.pos = this.sunPosition; 
         _camera.setAmbientLightDirection(_sun.pos);
 
@@ -118,15 +138,15 @@ var level3 = {
         this.spaceStation = new Spacestation();
 
         //level 3
-        this.meteoriteArray.push(new Meteorite(vec3(-200, 200, 60), this.spaceStation, this.meteoriteSpeed, 5));
+        this.meteoriteArray.push(new Meteorite(vec3(-170, 150, 60), this.spaceStation, this.meteoriteSpeed, 5));
         this.meteoriteArray.push(new Meteorite(vec3(210, -30, 180), this.spaceStation, this.meteoriteSpeed, 5));
         this.meteoriteArray.push(new Meteorite(vec3(-130, -270, 90), this.spaceStation, this.meteoriteSpeed, 6));
         this.meteoriteArray.push(new Meteorite(vec3(190, 0, -300), this.spaceStation, this.meteoriteSpeed, 6));
         this.meteoriteArray.push(new Meteorite(vec3(130, -180, 240), this.spaceStation, this.meteoriteSpeed, 7));
         this.meteoriteArray.push(new Meteorite(vec3(-180, 20, -310), this.spaceStation, this.meteoriteSpeed, 7));
-        this.meteoriteArray.push(new Meteorite(vec3(0, 450, 0), this.spaceStation, this.meteoriteSpeed, 8));
+        this.meteoriteArray.push(new Meteorite(vec3(0, -300, 0), this.spaceStation, this.meteoriteSpeed, 8));
         this.meteoriteArray.push(new Meteorite(vec3(280, -200, 40), this.spaceStation, this.meteoriteSpeed, 8));
-        this.meteoriteArray.push(new Meteorite(vec3(0, 250, 280), this.spaceStation, this.meteoriteSpeed, 9));
+        this.meteoriteArray.push(new Meteorite(vec3(0, 250, 80), this.spaceStation, this.meteoriteSpeed, 9));
 
         scaleMeteoriteDistance(this.meteoriteArray);
     },
@@ -140,6 +160,6 @@ var level3 = {
             this.meteoriteArray[i].frameDone();
         }
         //update spacestation
-        this.spaceStation.object.frameDone();
+        this.spaceStation.frameDone();
     }
 }

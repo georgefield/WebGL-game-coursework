@@ -6,6 +6,7 @@ var text = {
     spacestationDestroyed: undefined,
     nextLevel: undefined,
     win: undefined,
+    levelNum: undefined,
 
     init: function(){
         this.start = document.getElementById("start");
@@ -16,6 +17,7 @@ var text = {
         this.nextLevel = document.getElementById("nextLevel");
         this.win = document.getElementById("win");
 
+        this.levelNum = document.getElementById("levelNum");
         this.hideAll();
     },
 
@@ -27,6 +29,8 @@ var text = {
         this.hideText(this.spacestationDestroyed);
         this.hideText(this.nextLevel);
         this.hideText(this.win);
+
+        this.hideText(this.levelNum);
     },
 
     showText: function(textObj){
@@ -36,4 +40,8 @@ var text = {
     hideText: function(textObj){
         textObj.style.display = "none";
     },
+
+    setText: function(textObj, text){
+        textObj.innerHTML = text;
+    }
 }
