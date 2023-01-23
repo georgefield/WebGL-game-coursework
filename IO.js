@@ -1,3 +1,5 @@
+//keyboard and mouse class
+
 ///*** MOUSE HANDLING ***///
 
 class Mouse {
@@ -76,6 +78,7 @@ class Mouse {
   
 
 ///*** KEYBOARD HANDLING ***///
+//can check anywhere in program for key down, just pressed, up or just released with keyTest(,) function
 
 //values for bitwise operations
 //1st & 2nd bit denotes whether down or not, 2nd and 3rd bits denotes whether just pressed or just released

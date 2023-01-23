@@ -1,4 +1,7 @@
-//not sure where to put this function, used in player.js aswell
+//useful function used in player.js aswell for the projectiles
+//when objects are destroyed the value object.erase is set to true
+//this function, when given an array of objects, will remove all the objects that have been erased
+//used for projectiles & meteorites
 function removeErasedObjectsFromArray(array){
     //remove destroyed meteorites
     let removeIndices = []
@@ -16,6 +19,7 @@ function removeErasedObjectsFromArray(array){
     }
 }
 
+//realised meteorites too close after typing in all the values needed to create this function
 var meteoriteDistanceScale = 1.5;
 function scaleMeteoriteDistance(meteoriteArray){
     for (let i = 0; i < meteoriteArray.length; i++){
@@ -37,6 +41,8 @@ function displayLevelNum(){
     1500)
 }
 
+//levels have different number of meteorites, meteorite location, meteorite speed, and background changes by changing the sun properties
+//level should get harder (increase number of meteorites as you go up)
 var level1 = {
 
     meteoriteArray: [],

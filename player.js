@@ -1,5 +1,12 @@
 var player = {};
 
+player.collisionModel = new Point(vec3(0,0,0));
+player.projectiles = [];
+player.projectilePositions = []; //sent to shaders for lighting info
+player.isDead = false;
+player.lastTimeFired = 0;
+
+
 player.maximumMovementSpeed = 25;
 player.accelerationSpeed = 35; //how fast the ship will accelerate in units/second
 player.getAcceleration = function(){
@@ -27,12 +34,7 @@ player.getAcceleration = function(){
     return acc;
 }
 
-player.collisionModel = new Point(vec3(0,0,0));
-player.projectiles = [];
-player.projectilePositions = [];
-player.isDead = false;
-player.lastTimeFired = 0;
-
+//fire projectile direction you are looking
 player.fire = function(){
     player.lastTimeFired = Date.now();
 
@@ -40,13 +42,14 @@ player.fire = function(){
 
     let lookVector = vec3(_camera.getLookDirectionVector());
     let posOffset = scale(3,lookVector);
-    posOffset[2] = -posOffset[2];
+    posOffset[2] = -posOffset[2];//z flips ???
 
     projectile.vel = scale(150,lookVector);
     projectile.pos = add(new vec3(-_camera.pos[0],-_camera.pos[1],-_camera.pos[2]), posOffset);
     projectile.vel[2] = -projectile.vel[2]; //z flips ???
 
     projectile.rotation = new vec3(-_camera.el, -_camera.az, 0);
+    //not sure why the signs are so messed up for the maths
 
     player.projectiles.push(projectile);
 }
@@ -71,7 +74,7 @@ player.reset = function(){
 
 player.win = function(){
     text.showText(text.win);
-    //wait for 2 second then go to menu
+    //wait for 2.5 second then go to menu
     if (_gameState != "do nothing"){
         _gameState = "do nothing";
         setTimeout(function(){

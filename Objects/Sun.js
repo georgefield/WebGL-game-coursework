@@ -1,5 +1,6 @@
 class Sun{
     constructor(){
+        //made of two rotation icosahedrons
         this.model1 = new Icosahedron();
         this.model2 = new Icosahedron();
 
@@ -29,11 +30,11 @@ class Sun{
     }
 
     draw(){
-        let model1ViewMatrix = myMV.getModelViewMatrix(this.scale, this.pos, this.rotation1);
-        let model2ViewMatrix = myMV.getModelViewMatrix(this.scale, this.pos, this.rotation2);
-
         let sunColorLoc = gl.getUniformLocation(sunProgram, "sunColor");
         gl.uniform4fv(sunColorLoc, this.colour);
+
+        let model1ViewMatrix = myMV.getModelViewMatrix(this.scale, this.pos, this.rotation1);
+        let model2ViewMatrix = myMV.getModelViewMatrix(this.scale, this.pos, this.rotation2);
 
         //no translate so sun has no parralax effect (looks far away)
         this.model1.draw(sunProgram, _camera.getPerspectiveMatrixNoTranslate(), model1ViewMatrix);

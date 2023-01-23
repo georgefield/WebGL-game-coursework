@@ -22,6 +22,7 @@ class Point{
     }
 }
 
+//can call on any pair of collision models and will call appropriate function
 function isColliding(obj1, obj2){
     if (obj1.name == "sphere" && obj2.name == "sphere"){
         return sphereSphere(obj1, obj2);

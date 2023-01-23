@@ -74,13 +74,13 @@ class Meteorite{
         gl.uniformMatrix4fv(invRotationMatrixLoc, false, flatten(inverseRotationMatrix));
         gl.uniform1f(sunFlareAmountLoc, _sunFlareAmount);
 
-        //projectiles array
+            //projectiles array uniform
         let numProjectilesLoc = gl.getUniformLocation(meteoriteProgram, "numProjectiles");
         let projectilePositionsLoc = gl.getUniformLocation(meteoriteProgram, "projectilePositions");
 
         gl.uniform1i(numProjectilesLoc, player.projectilePositions.length);
         gl.uniform3fv(projectilePositionsLoc, flatten(player.projectilePositions));
-        
+
         this.model.draw(meteoriteProgram, _camera.getPerspectiveMatrix(), myMV.getModelViewMatrix(this.scale, this.pos, this.rotation), true);
     }
 }

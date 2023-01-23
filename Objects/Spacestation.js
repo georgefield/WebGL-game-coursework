@@ -1,23 +1,14 @@
-/*old spacestation stand in code
 class Spacestation{
     constructor(){
-        this.pos = vec3(0,0,-20);
-        this.object = new Meteorite(this.pos, undefined, 0, 10);
-        this.object.colour = vec4(1,1,1,1);
-    }
 
-    draw(){
-        this.object.draw();
-    }
-}*/
-
-class Spacestation{
-    constructor(){
-        this.pos = vec3(0,0,-20);
         this.model = new SpacestationModel();
+
+        this.pos = vec3(0,0,-20);
         this.scale = 3;
 
-        //check all 4
+        //check all 5
+        //model spacestation by 5 circles arranged in plus shape
+        //not that accurate but good enough
         this.collisionModel = [
             new Sphere(this.scale,this.pos),
             new Sphere(this.scale,add(this.pos,vec3(this.scale * 5,0,0))),
@@ -62,6 +53,7 @@ class Spacestation{
     }
     
     draw(){
+        //auxiliary uniforms
         let invRotationMatrixLoc = gl.getUniformLocation(spacestationProgram, "inverseRotationMatrix");
         let ambientLightDirectionLoc = gl.getUniformLocation(spacestationProgram, "ambientLightDirection");
         let grayOutFactorLoc = gl.getUniformLocation(spacestationProgram, "grayOutFactor");
@@ -72,7 +64,7 @@ class Spacestation{
         gl.uniform3fv(ambientLightDirectionLoc, _camera.ambientLightDirection);
         gl.uniform1f(grayOutFactorLoc, this.grayOutFactor);
         
-        //projectiles array
+            //projectiles array uniforms
         let numProjectilesLoc = gl.getUniformLocation(spacestationProgram, "numProjectiles");
         let projectilePositionsLoc = gl.getUniformLocation(spacestationProgram, "projectilePositions");
 
@@ -82,6 +74,7 @@ class Spacestation{
         this.model.draw(spacestationProgram, _camera.getPerspectiveMatrix(), myMV.getModelViewMatrix(vec3(this.scale ,this.scale ,this.scale), this.pos, this.rotation), true);
     }
 
+    //helper function that calls isColliding with object for each of the parts of the collision model
     checkCollidingWith(obj){
         for (let i =0; i < this.collisionModel.length; i++){
             if (isColliding(obj, this.collisionModel[i])){

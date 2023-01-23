@@ -1,3 +1,5 @@
+//extension to the MV library with my own useful geometric functions
+
 var myMV = {};
 
 myMV.getRotationMatrix = function(){ //el, az, spin

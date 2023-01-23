@@ -110,7 +110,7 @@ class Camera{
 
     //getters
     getPerspectiveMatrix(){
-        //important order: p * rY * rX * t [* vPos], so perspective first then, rX ...
+        //important order: p * rY * rX * t [* vPos]
         let ret = mult(mult(mult(
         perspective(100.0, 1.0, 1.0, 750.0),
         rotateX(this.el)),
@@ -120,7 +120,7 @@ class Camera{
         return ret;
     }
 
-    //for sun
+    //for sun to give no parralax (seem very far away)
     getPerspectiveMatrixNoTranslate(){
         let ret = mult(mult(
             perspective(100.0, 1.0, 1.0, 750.0),

@@ -89,9 +89,10 @@ function initSystems(){
     text.init();
 }
 
+//keeps requesting animation frame on itself. m
 function gameLoop(){
 
-    if (_gameState == "playing"){
+    if (_gameState == "playing"){ //main game
         processInput();
         collisions();
         gameRender();
@@ -100,8 +101,8 @@ function gameLoop(){
     else if (_gameState == "menu"){
         menu();
     }
-    else if (_gameState == "wait"){
-        _gameState = "do nothing"; //stop 1 billion set timeout functions being called
+    else if (_gameState == "wait"){ //_gamestate set to 'wait' after failed or completed a level, waits 1.5 seconds then continues on same or next level
+        _gameState = "do nothing";
         setTimeout(function(){
             text.hideAll();
             player.reset();
@@ -111,7 +112,7 @@ function gameLoop(){
 
             _gameState = "playing";
         },
-        1400);
+        1500);
     }
     else if (_gameState == "next level"){
         //increment level
@@ -126,24 +127,24 @@ function gameLoop(){
             _gameState = "wait";
         }
     }
-    else if (_gameState != "do nothing"){
-        if (_gameState == "space station destroyed"){
-            text.showText(text.spacestationDestroyed)
-        }
-        else if (_gameState == "player dead"){
-            text.showText(text.crashed);
-        }
+    else if (_gameState == "space station destroyed"){
+        text.showText(text.spacestationDestroyed);
         _gameState = "wait";
     }
+    else if (_gameState == "player dead"){
+        text.showText(text.crashed);
+        _gameState = "wait";
+    }
+
 
     frameDone();
     requestAnimationFrame(gameLoop);
 }
 
-//keep timing between all systems
+//calls all necessary frameDone commands
 function frameDone(){
 
-    if (_gameState == "playing"){
+    if (_gameState == "playing"){ //only when playing as may cause undefined errors if called when not
         _level.frameDone();
     }
 
@@ -156,6 +157,7 @@ function frameDone(){
     _sun.frameDone();
 }
 
+//process user input and set variables correctly
 function processInput(){
     _camera.addAzEl(_mouse.getMousePos());
 
@@ -174,6 +176,7 @@ function processInput(){
     }
 }
 
+//tests for all collisions
 function collisions(){
     for (let  i = 0; i < _level.meteoriteArray.length; i++){
         //meteorite hits space station
@@ -210,6 +213,7 @@ function collisions(){
     }
 }
 
+//run when playing
 function checkForWinLose(){
     if (_level.spaceStation.erase == true){
         _gameState = "space station destroyed";
@@ -222,6 +226,7 @@ function checkForWinLose(){
     }
 }
 
+//show text for menu and render menu
 function menu(){
 
     text.showText(text.start);
@@ -236,12 +241,14 @@ function menu(){
     _camera.setAmbientLightDirection(_sun.pos);
 
     menuRender();
+
     if (_mouse.clicked){
         _mouse.clicked = false;
 
-        if (myMV.distance(_mouse.getMousePosVecFromTL(), vec2(160,130)) < 70){ //click near enough to start html         
+        if (myMV.distance(_mouse.getMousePosVecFromTL(), vec2(160,130)) < 70){ //click near enough to start then start       
+            //make sure all variables are correctly set
             text.hideAll();
-
+    
             _mouse.currentX = 0;
             _mouse.currentY = 0;
 

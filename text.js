@@ -1,3 +1,4 @@
+//text namespace for handling the displaying of the css divs and the appropriate time
 var text = {
 
     start: undefined,
@@ -8,7 +9,7 @@ var text = {
     win: undefined,
     levelNum: undefined,
 
-    init: function(){
+    init: function(){ //gets all the element ids and hides all the divs to start
         this.start = document.getElementById("start");
         this.objective = document.getElementById("objective");
 
@@ -41,7 +42,7 @@ var text = {
         textObj.style.display = "none";
     },
 
-    setText: function(textObj, text){
+    setText: function(textObj, text){ //needed for levelNum
         textObj.innerHTML = text;
     }
 }

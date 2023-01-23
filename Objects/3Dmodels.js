@@ -24,6 +24,7 @@ tools3D.enableNormalAttrib = function(program,nboID){
     gl.enableVertexAttribArray(nPosition);
 }
 
+//give this class vertices and then you can call function to add triangle given the index of three points. also calculates normals
 class ModelCreatorHelper{
     constructor(vertices = undefined){
         this.points = [];
@@ -59,6 +60,7 @@ class ModelCreatorHelper{
         this.points.push(vertices[2]);
     }
 
+    //used to load the monstrosity pasted into html file
     loadSTL(STL){
         let splitByFace = STL.split("normal ");
 
@@ -66,7 +68,7 @@ class ModelCreatorHelper{
             let splitByLine = splitByFace[i].split('\n');
             let normal = splitByLine[0].split(" ");
 
-            for (let j = 0; j < 3; j++){ 
+            for (let j = 0; j < 3; j++){ //add normals 3 times
                 this.normals.push(vec3(parseFloat(normal[0]),parseFloat(normal[1]),parseFloat(normal[2])));
             }
             for (let j = 0; j < 3; j++){
@@ -77,7 +79,7 @@ class ModelCreatorHelper{
     }
 }
 
-
+//hard coded models
 class Icosahedron{
     constructor(){
         this.numVertices = 60; //20 faces, 3 points for each face
@@ -85,8 +87,8 @@ class Icosahedron{
         this.points = [];
         this.normals = [];
 
-        this.vboID = 0;
-        this.nboID = 0;
+        this.vboID = 0; //vertex buffer object
+        this.nboID = 0; //normals buffer object
 
         this.init();
     }
@@ -161,7 +163,7 @@ class Icosahedron{
             tools3D.enableNormalAttrib(program,this.nboID);
         }
         tools3D.enableVertexAttrib(program,this.vboID);
-        
+
         gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
     }
 }
@@ -235,12 +237,16 @@ class Cube{
     }
 }
 
+//uses stl file hacked in main.html (im sorry)
 class SpacestationModel{
     constructor(){
         this.points = undefined;
         this.normals = undefined;
         this.numVertices = undefined;
         
+        this.vboID = 0;
+        this.nboID = 0;
+
         this.init();
     }
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-
+<!--GLSL programs-->
 <script id="meteorite-vert" type="x-shader/x-vertex">
 
 attribute vec4 vertex;
@@ -26,7 +26,7 @@ void main()
     vec4 worldVertex = modelViewMatrix * vertex;
     vec4 screenVertex = projectionMatrix * worldVertex;
 
-    //vertex redness by how close each projectile is
+    //projectile light source
     float redness = 0.0;
     for (int i = 0; i < 12; i++) {
         if (i >= numProjectiles){ //loop must have constant value sadly
@@ -36,13 +36,16 @@ void main()
         redness += 125.0/(distance * distance);
     }
 
+    //ambient lighting
     vec3 aldAccountingForRotation = vec3(inverseRotationMatrix * vec4(ambientLightDirection, 1.0));
-
     vec4 sunShadedColor = vec4(vec3(vColor) * (dot(aldAccountingForRotation, normal) / 2.0 + 0.5),1); //normal calculated as approximation of icosahedron (a sphere)
+    
+    //combine
     fColor = vec4(redness,0,0,0) + sunShadedColor; //sun and redness shaded colour
 
     gl_Position = screenVertex;
 
+    //pass to frag to create fog
     fvPosition = screenVertex.xyz;
     fSunFlareAmount = sunFlareAmount;
 }
@@ -58,16 +61,17 @@ varying vec4 fColor;
 varying float fSunFlareAmount;
 
 void main() {
-    vec4 uFogColor = vec4(fSunFlareAmount * 0.7,0.05 + fSunFlareAmount * 0.6,0.12 + fSunFlareAmount * 0.4,1); //same as background
-    float uFogStart = 0.0; //the distance from the camera where the fog starts
-    float uFogEnd = 750.0;   //the distance from the camera where the fog is completely covering the scene = far plane
+    vec4 fogColor = vec4(fSunFlareAmount * 0.7,0.05 + fSunFlareAmount * 0.6,0.12 + fSunFlareAmount * 0.4,1); //same as background
+    float fogStart = 0.0; //the distance from the camera where the fog starts
+    float fogEnd = 750.0;   //the distance from the camera where the fog is completely covering the scene = far plane
 
-    float fogFactor = (length(fvPosition) - uFogStart) / (uFogEnd - uFogStart);
+    float fogFactor = (length(fvPosition) - fogStart) / (fogEnd - fogStart);
     fogFactor = clamp(fogFactor, 0.0, 1.0); // clamp the fogFactor between 0 and 1
-    gl_FragColor = vec4(mix(fColor, uFogColor, fogFactor));
+    gl_FragColor = vec4(mix(fColor, fogColor, fogFactor));
 }
     
 </script>
+
 
 <script id="background-vert" type="x-shader/x-fragment">
 attribute vec2 vertex;
@@ -80,9 +84,13 @@ uniform vec4 sunColor;
 void main()
 {
 
+    //faded sun color depends on sun color
     vec3 fadedSunColor = vec3(sunColor.r * 0.4, sunColor.g * 0.35, sunColor.b * 0.3);
 
+    //z set to 0.9999 so renders behind everything
     gl_Position = vec4(vertex, 0.99999, 1);
+
+    //mix in faded sun color if looking near sun
     fColor = vec4(sunFlareAmount * fadedSunColor.r,0.05 + sunFlareAmount * fadedSunColor.g,0.12 + sunFlareAmount * fadedSunColor.b,1);
 }
 </script>
@@ -98,6 +106,7 @@ void main()
     gl_FragColor = fColor;
 }
 </script>
+
 
 <script id="sun-vert" type="x-shader/x-vertex">
 
@@ -132,6 +141,7 @@ void main()
 }
 </script>
 
+
 <script id="hud-vert" type="x-shader/x-vertex">
 
 attribute vec2 vertex;
@@ -144,6 +154,7 @@ void main()
 {
     fColor = vec4(0.2,1,0.3,1);
 
+    //0.01 z so renders above everything
     gl_Position = arrowModelViewMatrix * vec4(vertex,0.01,1);
 }
 
@@ -160,6 +171,7 @@ void main()
     gl_FragColor = fColor;
 }
 </script>
+
 
 <script id="projectile-vert" type="x-shader/x-vertex">
 
@@ -191,6 +203,7 @@ void main()
 }
 </script>
 
+
 <script id="spacestation-vert" type="x-shader/x-vertex">
 
     attribute vec4 vertex;
@@ -203,7 +216,7 @@ void main()
     uniform mat4 inverseRotationMatrix;
 
     uniform vec3 ambientLightDirection;
-    uniform float grayOutFactor;
+    uniform float grayOutFactor; //ranges from 0 to 1, 1 is full gray
 
     uniform int numProjectiles;
     uniform vec3 projectilePositions[12]; //4 per second, gone after 3 seconds
@@ -213,7 +226,7 @@ void main()
         vec4 worldVertex = modelViewMatrix * vertex;
         vec4 screenVertex = projectionMatrix * worldVertex;
 
-        //vertex redness by how close each projectile is
+        //projectile light source
         float redness = 0.0;
         for (int i = 0; i < 12; i++) {
             if (i >= numProjectiles){ //loop must have constant value sadly
@@ -223,10 +236,13 @@ void main()
             redness += 20.0/(distance * distance);
         }
 
+        //ambient lighting
         vec3 aldAccountingForRotation = vec3(inverseRotationMatrix * vec4(ambientLightDirection, 1.0));
         float brightnessFactor = (dot(aldAccountingForRotation, normal) / 2.0 + 0.5);
 
-        vec4 normalColor = vec4(brightnessFactor + redness, brightnessFactor, brightnessFactor, 1);
+        //combine lighting
+        vec4 normalColor = vec4(redness, 0, 0, 0) + vec4(brightnessFactor, brightnessFactor, brightnessFactor, 1);
+        //apply any gray out
         fColor = mix(normalColor, vec4(0.5,0.5,0.5,1), grayOutFactor);
 
         gl_Position =  screenVertex;
@@ -245,6 +261,7 @@ void main()
 }
 </script>
 
+<!--include all necessary scripts-->
 <script type="text/javascript" src="Tools/initShaders.js"></script>
 <script type="text/javascript" src="Tools/MV.js"></script>
 <script type="text/javascript" src="Tools/webgl-utils.js"></script>
@@ -267,7 +284,7 @@ void main()
 <script type="text/javascript" src="text.js"></script>
 <script type="text/javascript" src="render.js"></script>
 
-<!--im a terrible person for doing this but lord knows im not dealing with a python server just to import one file-->
+<!--did not have the time to set up a server to be able to import this from a file sorry-->
 <script id = "spacestationSTL" type="x-shader/x-fragment">normal 0.962853 0.063108 0.262548
 5.462415 0.000000 0.000000
 5.415684 0.712988 0.000000
@@ -13164,11 +13181,13 @@ normal 0.000000 0.000000 -1.000000
 -0.800000 4.852410 -0.450000
 0.800000 4.166499 -0.450000
 -0.800000 4.166499 -0.450000</script>
+
 <body>
     <canvas id="gl-canvas" width = "1280" height = "720">
         Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
-    
+
+    <!--below is the text that is set to visible at certain times by scripts-->
 
     <!-- main menu -->
     <style>
@@ -13201,7 +13220,7 @@ normal 0.000000 0.000000 -1.000000
         Click 'START' to begin...
     </div>
 
-     <!-- messages to player -->
+    <!-- pop up messages-->
     <style>
         .messageBad{
             position: absolute;
@@ -13247,6 +13266,7 @@ normal 0.000000 0.000000 -1.000000
     <div class = "messageGood" id = "win">
         You Have Completed All Levels! <br> Well done!
     </div>
+    <!--this last one is changed by scripts-->
     <div class = "miniText" id = "levelNum">
         LEVEL #
     </div>

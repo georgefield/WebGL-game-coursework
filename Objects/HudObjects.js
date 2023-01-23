@@ -1,3 +1,4 @@
+//for showing the turning direction when playing
 class HudArrow{
     constructor(){
         this.t1 = new Triangle2D(vec4(-0.1,-1,0.2,0.2));
@@ -33,10 +34,12 @@ class HudArrow{
     }
 }
 
+//for showing the cursor in menu
 class HudPointer{
     constructor(){
         let a = Math.sqrt(3)/2.0;
         let size = 0.05;
+        //equilateral triangle centre 0
         this.triangle = new Triangle2D(scale(size,vec4(-a,-0.5,2*a,1.5)));
 
         this.rotation = 0;
