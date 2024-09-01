@@ -2,12 +2,14 @@
 //  initShaders.js
 //
 
+const { FileLoader } = require("three");
+
 function initShaders( gl, vertexShaderId, fragmentShaderId )
 {
     var vertShdr;
     var fragShdr;
 
-    var vertElem = document.getElementById( vertexShaderId );
+    var vertElem = loadShader(vertexShaderId);
     if ( !vertElem ) { 
         alert( "Unable to load vertex shader " + vertexShaderId );
         return -1;
@@ -24,7 +26,7 @@ function initShaders( gl, vertexShaderId, fragmentShaderId )
         }
     }
 
-    var fragElem = document.getElementById( fragmentShaderId );
+    var fragElem = loadShader(fragmentShaderId);
     if ( !fragElem ) { 
         alert( "Unable to load vertex shader " + fragmentShaderId );
         return -1;

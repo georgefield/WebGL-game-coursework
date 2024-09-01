@@ -60,8 +60,8 @@ class ModelCreatorHelper{
         this.points.push(vertices[2]);
     }
 
-    //used to load the monstrosity pasted into html file
-    loadSTL(STL){
+    //used to load my modified STL file model of spacestation into as list of points and normals
+    loadMYSTL(STL){
         let splitByFace = STL.split("normal ");
 
         for (let i = 1; i < splitByFace.length; i++){

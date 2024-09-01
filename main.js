@@ -38,13 +38,11 @@ window.onload = function run(){
 function initSystems(){
 
     //load spacestation
-    var spacestationSTL = document.getElementById("spacestationSTL");
-    if ( !spacestationSTL ) { 
+    _spacestationSTL = loadFileAJAX("Blender/spacestation.mystl");
+    if ( !_spacestationSTL ) { 
         alert("Unable to load space station obj file");
         return -1;
     }
-    _spacestationSTL = spacestationSTL.text;
-
     //setup canvas and webGl
     canvas = document.getElementById("gl-canvas");
 
@@ -60,12 +58,12 @@ function initSystems(){
     gl.depthFunc(gl.LEQUAL);
     
     //init glsl programs
-    meteoriteProgram = initShaders(gl, "meteorite-vert", "meteorite-frag");
-    backgroundProgram = initShaders(gl, "background-vert", "background-frag");
-    sunProgram = initShaders(gl, "sun-vert", "sun-frag");
-    hudProgram = initShaders(gl, "hud-vert", "hud-frag");
-    projectileProgram = initShaders(gl, "projectile-vert", "projectile-frag");
-    spacestationProgram = initShaders(gl, "spacestation-vert", "spacestation-frag");
+    backgroundProgram = initShaders(gl, "Shaders/background.vert", "Shaders/background.frag");
+    hudProgram = initShaders(gl, "Shaders/hud.vert", "Shaders/hud.frag");
+    meteoriteProgram = initShaders(gl, "Shaders/meteorite.vert", "Shaders/meteorite.frag");
+    projectileProgram = initShaders(gl, "Shaders/projectile.vert", "Shaders/projectile.frag");
+    spacestationProgram = initShaders(gl, "Shaders/spacestation.vert", "Shaders/spacestation.frag");
+    sunProgram = initShaders(gl, "Shaders/sun.vert", "Shaders/sun.frag");
 
     //init classes
     _camera = new Camera();

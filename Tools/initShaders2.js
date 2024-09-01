@@ -12,7 +12,7 @@
     function initShaders(gl, vShaderName, fShaderName) {
         function getShader(gl, shaderName, type) {
             var shader = gl.createShader(type),
-                shaderScript = loadFileAJAX(shaderName);
+            shaderScript = loadFileAJAX(shaderName);
             if (!shaderScript) {
                 alert("Could not find shader source: "+shaderName);
             }
