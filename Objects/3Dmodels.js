@@ -252,7 +252,7 @@ class SpacestationModel{
 
     init(){
         let helper = new ModelCreatorHelper();
-        helper.loadSTL(_spacestationSTL, this.points, this.normals);
+        helper.loadMYSTL(_spacestationSTL, this.points, this.normals);
 
         this.points = helper.points;
         this.normals = helper.normals;
